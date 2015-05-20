@@ -1,14 +1,13 @@
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Point {
+public class Point extends Point2D.Double{
 	private List<Line> lines;
-	double x;
-	double y;
 
 	public void loesch() {
 		for (Line line : lines) {
-			line.points.remove(this);
+			line.remove(this);
 		}
 	}
 
@@ -16,32 +15,14 @@ public class Point {
 		lines.add(l);
 	}
 
-	public double getX() {
-		return x;
-	}
-
-	public void setX(double x) {
-		this.x = x;
-	}
-
-	public double getY() {
-		return y;
-	}
-
-	public void setY(double y) {
-		this.y = y;
-	}
-
 	public Point(double x, double y) {
-		super();
-		this.x = x;
-		this.y = y;
+		super(x,y);
 		lines = new ArrayList<Line>();
 	}
 
 	@Override
 	public String toString() {
-		return "Point [x=" + x + ", y=" + y + "]";
+		return "Point [x=" + getX() + ", y=" + getY() + "]";
 	}
 
 }

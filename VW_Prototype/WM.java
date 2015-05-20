@@ -5,32 +5,21 @@ public class WM {
 
 	private MapData map;
 
-	protected void WM(MapData map) {
-		for (int i = 0; i < map.lines.size(); i++) {
-			findBends(map.lines.get(i).points);
-		}
-	}
-
-	protected List<Bend> findBends(List<Point> line) {
+	protected List<Bend> findBends(Line line) {
 		List<Bend> bends = new ArrayList<Bend>();
-		if (line.size()<3){
+		if (line.size() < 3) {
+			bends.add(new Bend(line));
 			return bends;
 		}
-		Bend bend = new Bend();
-		bend.add(line.get(0));
-		bend.add(line.get(1));
-		bend.isPositive = positiveBend(line.get(0), line.get(1), line.get(2));
-		for (int i = 1; i < line.size()-1; i++) {
+		Bend bend = new Bend(line.get(0), line.get(1), positiveBend(
+				line.get(0), line.get(1), line.get(2)));
+		for (int i = 1; i < line.size() - 1; i++) {
 			boolean pos = positiveBend(line.get(i - 1), line.get(i),
 					line.get(i + 1));
 			bend.add(line.get(i));
-			if ((pos && !bend.isPositive)
-					|| (!pos && bend.isPositive)) {
+			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
 				bends.add(bend);
-				bend = new Bend();
-				bend.add(line.get(i - 1));
-				bend.add(line.get(i));
-				bend.isPositive = pos;
+				bend = new Bend(line.get(i - 1), line.get(i), pos);
 			}
 		}
 		bends.add(bend);

@@ -64,9 +64,9 @@ public class KartoTest implements KeyListener {
 					.replaceAll("<gml\\:Point.*ts=\" \">", "")
 					.replaceAll("</gml\\:coordinates.*$", "")
 					.replaceAll(" $", "");
-			String[] string_point_plit = points_split[i].split(",");
-			map.pois.add(new Point(new Double(string_point_plit[0])
-					.doubleValue(), new Double(string_point_plit[1])
+			String[] string_point_split = points_split[i].split(",");
+			map.pois.add(new Point(new Double(string_point_split[0])
+					.doubleValue(), new Double(string_point_split[1])
 					.doubleValue()));
 		}
 
@@ -87,7 +87,7 @@ public class KartoTest implements KeyListener {
 		WM wm = new WM();
 		List<Bend> bends = new ArrayList<Bend>();
 		for (int i = 0; i < map.lines.size(); i++) {
-			bends.addAll(wm.findBends(map.lines.get(i).points));
+			bends.addAll(wm.findBends(map.lines.get(i)));
 		}
 
 		List<GMLObject> gml = new ArrayList<GMLObject>();
@@ -119,7 +119,7 @@ public class KartoTest implements KeyListener {
 		WM wm = new WM();
 		List<Bend> bends = new ArrayList<Bend>();
 		for (int i = 0; i < map.lines.size(); i++) {
-			bends.addAll(wm.findBends(map.lines.get(i).points));
+			bends.addAll(wm.findBends(map.lines.get(i)));
 		}
 
 		List<GMLObject> gml = new ArrayList<GMLObject>();

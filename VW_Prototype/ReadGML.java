@@ -42,7 +42,6 @@ public class ReadGML {
 		panel.calculateGMLBounds();
 		GMLPanel.showPanelInWindow(panel);
 	}
-	
 
 	public static void readGML(Scanner scan, List<GMLObject> gml) {
 		// use <, >, \r, and \n as delimiters
@@ -84,7 +83,10 @@ public class ReadGML {
 				} while (nesting != 0);// use GML structure to find out when
 										// object is over
 				// add to list
-				gml.add(new GMLObject(id, list));
+				gml.add(new GMLObject(id, list, new Color(
+						(int) (Math.random() * 200),
+						(int) (Math.random() * 200),
+						(int) (Math.random() * 200))));
 			} catch (NumberFormatException e) {
 				System.out.println("Number format error");
 				e.printStackTrace();
@@ -94,7 +96,4 @@ public class ReadGML {
 		scan.reset();
 	}
 
-	
-
-	
 }

@@ -30,10 +30,10 @@ public class GMLPanel extends JPanel implements MouseListener {
 	 * Bounds of the GML Objects (call once at beginning)
 	 */
 	protected void calculateGMLBounds() {
-		xMin = list.get(0).x;
-		xMax = xMin;
-		yMin = list.get(0).y;
-		yMax = yMin;
+		xMin = Double.POSITIVE_INFINITY;
+		xMax = Double.NEGATIVE_INFINITY;
+		yMin = Double.POSITIVE_INFINITY;
+		yMax = Double.NEGATIVE_INFINITY;
 		for (int i = 0; i < list.size(); i++) {
 			Rectangle r = list.get(i).path.getBounds();
 			xMin = Math.min(xMin, r.x);
@@ -88,7 +88,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).isPoint) {
 				gr.setColor(Color.RED);
-				drawPoint(gr, new Point2D.Double(list.get(i).x, list.get(i).y));
+				drawPoint(gr, (Point2D.Double)list.get(i).path.getCurrentPoint());
 			} else {
 				gr.setColor(list.get(i).color);
 				// gr.setColor(new Color((int)(Math.random()*256),
@@ -104,10 +104,10 @@ public class GMLPanel extends JPanel implements MouseListener {
 	 * Draw Points as crosses so you can see them
 	 * 
 	 * @param g
-	 * @param p
+	 * @param point
 	 *            Point to draw
 	 */
-	protected void drawPoint(Graphics2D g, Point2D.Double p) {
+	protected void drawPoint(Graphics2D g, Point2D.Double point) {
 		// plus form
 		double crossWidth = 3;
 
@@ -116,9 +116,9 @@ public class GMLPanel extends JPanel implements MouseListener {
 				/ at.getScaleY();
 
 		// draw
-		Line2D.Double l = new Line2D.Double(p.x - xDiff, p.y, p.x + xDiff, p.y);
+		Line2D.Double l = new Line2D.Double(point.x - xDiff, point.y, point.x + xDiff, point.y);
 		g.draw(l);
-		l = new Line2D.Double(p.x, p.y - yDiff, p.x, p.y + yDiff);
+		l = new Line2D.Double(point.x, point.y - yDiff, point.x, point.y + yDiff);
 		g.draw(l);
 	}
 
@@ -134,11 +134,19 @@ public class GMLPanel extends JPanel implements MouseListener {
 	}
 
 	double mousex, mousey;
+	double time;
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-
+		//Fuer dopple-click, raus zoomen.
+		double time2 = System.nanoTime();
+		if (time2-time<1500000){
+			d = null;
+			calculateAffine();
+			repaint();
+		}
+		System.out.println(time2+" "+(time2-time));
+		time = time2;
 	}
 
 	@Override
@@ -162,27 +170,23 @@ public class GMLPanel extends JPanel implements MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		double x2 = e.getX(), y2 = e.getY();
+		
+		//click or invalid window
+		if (mousex == x2 || mousey == y2){
+			return;
+		}
 
 		double xMin = Math.min(mousex, x2);
 		double xMax = Math.max(mousex, x2);
 		double yMin = Math.min(mousey, y2);
 		double yMax = Math.max(mousey, y2);
 
-		Dimension d2 = this.getSize();
-		// update
-		d = d2;
-		at.setToIdentity();
-
-		//
-		//
-		//
-		//
-
-		// update
-		d = d2;
-		at = calculateAffine();
-		// move away from top left corner
-		at.translate(d.getWidth() * .05, d.getHeight() * .05);
+		// zooming in
+		AffineTransform at = new AffineTransform();
+		// following operations occur in backwards order:
+		
+		// origin to middle
+		at.translate(d.getWidth() * .5, d.getHeight() * .5);
 
 		// amount to scale by
 		double scale = Math.min(d.getWidth() * .9 / (xMax - xMin),
@@ -193,22 +197,12 @@ public class GMLPanel extends JPanel implements MouseListener {
 		// y flips because computer's positive y is down
 		at.scale(scale, scale);
 
-		// Move (xMin,yMin) to origin
-		at.translate(-xMin, -yMin);
+		// Move middle to origin
+		at.translate(-(xMin+xMax)/2.0, -(yMin+yMax)/2.0);
 
-		// move away from top left corner
-		at.translate(d.getWidth() * .05, d.getHeight() * .05);
-
-		// amount to scale by
-		scale = Math.min(d.getWidth() * .9 / (this.xMax - this.xMin),
-				d.getHeight() * .9 / (this.yMax - this.yMin));
-
-		// y flips because computer's positive y is down
-		at.scale(scale, -scale);
-
-		// Move (xMin,yMax) to origin (yMax because computer's positive y is
-		// down)
-		at.translate(-this.xMin, -this.yMax);
+		at.concatenate(this.at);
+		this.at = at;//at.concatenate(this.at);
+		//this.at.concatenate(at);
 
 		repaint();
 	}
