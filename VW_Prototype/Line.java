@@ -7,4 +7,9 @@ public class Line {
 	public Line(){
 		points = new ArrayList<Point>();
 	}
+	
+	public void add(Point p){
+		points.add(p);
+		p.addToLine(this);
+	}
 }
