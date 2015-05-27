@@ -9,11 +9,24 @@ public class VW {
 				double area = effectiveArea(map.lines.get(k).get(i - 1),
 						map.lines.get(k).get(i), map.lines.get(k).get(i + 1));
 				if (area < leastEffectiveArea) {
+					//Suche nach Staedten / POIs, die Reduzierung verhindern
 					for (Point poi : map.pois) {
 						if (inTrig(map.lines.get(k).get(i - 1), map.lines
 								.get(k).get(i), map.lines.get(k).get(i + 1),
 								poi)) {
 							continue pointLoop;
+						}
+					}
+					//Suche nach Linienschnitten, die Reduzierung verhindern
+					for (Line line : map.lines){
+						for (Point point : line.points) {
+							Point p1 = map.lines.get(k).get(i - 1);
+							Point p2 = map.lines.get(k).get(i);
+							Point p3 = map.lines.get(k).get(i + 1);
+							if (inTrig(p1, p2, p3, point) && p1 != point
+									&& p2 != point && p3!= point) {
+								continue pointLoop;
+							}
 						}
 					}
 
