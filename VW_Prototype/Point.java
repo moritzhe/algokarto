@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,13 @@ public class Point extends Point2D.Double{
 	public Point(double x, double y) {
 		super(x,y);
 		lines = new ArrayList<Line>();
+	}
+	
+	
+	public GMLObject toGMLObject(){
+		List<Point2D.Double> list = new ArrayList<Point2D.Double>();
+		list.add(this);
+		return new GMLObject(0,list,Color.RED);
 	}
 
 	@Override

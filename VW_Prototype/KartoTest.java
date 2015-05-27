@@ -94,6 +94,10 @@ public class KartoTest implements KeyListener {
 		for (int i = 0; i < bends.size(); i++) {
 			gml.add(new GMLObject(bends.get(i)));
 		}
+		
+		for (int i=0; i<map.pois.size(); i++){
+			gml.add(map.pois.get(i).toGMLObject());
+		}
 
 		panel = new GMLPanel();
 		panel.list = gml;
