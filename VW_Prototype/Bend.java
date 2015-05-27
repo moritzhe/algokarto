@@ -1,21 +1,22 @@
 public class Bend extends Line {
 	private boolean isPositive;
 	private double area;
-	
-	public Bend (Point p1, Point p2, boolean pos){
+	private double avgCurve;
+
+	public Bend(Point p1, Point p2, boolean pos) {
 		super();
 		add(p1);
 		add(p2);
 		isPositive = pos;
 	}
-	
-	public Bend (Line line){
+
+	public Bend(Line line) {
 		super();
 		this.points = line.points;
 		isPositive = false;
 	}
-	
-	public boolean isPositive(){
+
+	public boolean isPositive() {
 		return isPositive;
 	}
 
@@ -29,8 +30,62 @@ public class Bend extends Line {
 			area += (prev.x + cur.x) * (prev.y - cur.y);
 			prev = cur;
 		}
-		area = Math.abs(area/2.0);
+		area = Math.abs(area / 2.0);
 		return area;
+	}
+
+	public double getCircumference() {
+		return getLength() + getBaseLength();
+	}
+
+	public double getCompactness() {
+		return 4 * Math.PI * area() / (getCircumference() * getCircumference());
+	}
+
+	public double getAdjustedSize() {
+		return area() * .75 / getCompactness();
+	}
+
+	public double getAvgCurve() {
+		double curve = 0;
+		for (int i = 1; i < points.size() - 1; i++) {
+			curve += getTheta(points.get(i - 1), points.get(i),
+					points.get(i + 1));
+		}
+		return Math.abs(curve / getLength());
+	}
+
+	/**
+	 * As calculated in the paper. Unfortunately, no threshold was provided.
+	 * 
+	 * @param otherBend
+	 * @return
+	 */
+	public double similarityTo(Bend otherBend) {
+		double sizeNorm = (otherBend.getAdjustedSize() + getAdjustedSize()) / 2.0;
+		double cmpNorm = (otherBend.getCompactness() + getCompactness()) / 2.0;
+		double baseNorm = (otherBend.getBaseLength() + getBaseLength()) / 2.0;
+		double sizeSquare = Math.pow(
+				((otherBend.getAdjustedSize() - getAdjustedSize()) / sizeNorm), 2);
+		double cmpSquare = Math.pow(
+				((otherBend.getCompactness() - getCompactness()) / sizeNorm), 2);
+		double baseSquare = Math.pow(
+				((otherBend.getBaseLength() - getBaseLength()) / sizeNorm), 2);
+		return Math.sqrt(sizeSquare + cmpSquare + baseSquare);
+	}
+
+	/**
+	 * 
+	 * @param p1
+	 *            anfangspunkt
+	 * @param p3
+	 *            endpunkt
+	 * @return
+	 */
+	private double getTheta(Point p1, Point p2, Point p3) {
+		return Math.acos(//
+				((p2.x - p1.x) * (p3.x - p2.x) + (p2.y - p1.y) * (p3.y - p2.y))//
+						/ (p1.distance(p2) * p2.distance(p3)));
 	}
 
 }
