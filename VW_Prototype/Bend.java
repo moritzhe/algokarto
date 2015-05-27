@@ -1,7 +1,6 @@
 public class Bend extends Line {
 	private boolean isPositive;
 	private double area;
-	private double avgCurve;
 
 	public Bend(Point p1, Point p2, boolean pos) {
 		super();
@@ -46,6 +45,13 @@ public class Bend extends Line {
 		return area() * .75 / getCompactness();
 	}
 
+	@Override
+	public void update() {
+		super.update();
+		area = -1;
+		area = area();
+	}
+
 	public double getAvgCurve() {
 		double curve = 0;
 		for (int i = 1; i < points.size() - 1; i++) {
@@ -66,9 +72,11 @@ public class Bend extends Line {
 		double cmpNorm = (otherBend.getCompactness() + getCompactness()) / 2.0;
 		double baseNorm = (otherBend.getBaseLength() + getBaseLength()) / 2.0;
 		double sizeSquare = Math.pow(
-				((otherBend.getAdjustedSize() - getAdjustedSize()) / sizeNorm), 2);
-		double cmpSquare = Math.pow(
-				((otherBend.getCompactness() - getCompactness()) / sizeNorm), 2);
+				((otherBend.getAdjustedSize() - getAdjustedSize()) / sizeNorm),
+				2);
+		double cmpSquare = Math
+				.pow(((otherBend.getCompactness() - getCompactness()) / sizeNorm),
+						2);
 		double baseSquare = Math.pow(
 				((otherBend.getBaseLength() - getBaseLength()) / sizeNorm), 2);
 		return Math.sqrt(sizeSquare + cmpSquare + baseSquare);

@@ -21,6 +21,14 @@ public class Point extends Point2D.Double{
 		lines = new ArrayList<Line>();
 	}
 	
+	public void setPostition(double x, double y){
+		this.x = x;
+		this.y = y;
+		for (Line line : lines) {
+			line.update();
+		}
+	}
+	
 	
 	public GMLObject toGMLObject(){
 		List<Point2D.Double> list = new ArrayList<Point2D.Double>();
