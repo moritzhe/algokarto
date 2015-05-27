@@ -22,6 +22,8 @@ public class WM {
 				bend = new Bend(line.get(i - 1), line.get(i), pos);
 			}
 		}
+		//Der letzte Punkt is immer auf der gleichen Bend wie der vorletzte
+		bend.add(line.get(line.size() - 1));
 		bends.add(bend);
 		return bends;
 	}
