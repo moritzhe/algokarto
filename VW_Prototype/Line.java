@@ -44,4 +44,9 @@ public class Line {
 	public String toString(){
 		return points.toString();
 	}
+	
+	public double getBaseLength(){
+		//Baseline-Laenge
+		return points.get(0).distance(points.get(points.size()-1));
+	}
 }
