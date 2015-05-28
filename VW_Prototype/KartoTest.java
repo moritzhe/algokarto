@@ -15,7 +15,8 @@ public class KartoTest implements KeyListener {
 	GMLPanel panel;
 
 	public static void main(String[] args) {
-		new KartoTest();
+		KartoTest karto = new KartoTest();
+		karto.display();
 	}
 
 	// einlesen und display
@@ -23,8 +24,6 @@ public class KartoTest implements KeyListener {
 
 		String data = "";// "testdaten2/";
 		map = readData(data + "lines_out2.txt", data + "points_out2.txt");
-
-		useOtherDisplay(map);
 
 		// frame = new JFrame("Lines...");
 		// pan = new LinePanel(map);
@@ -98,7 +97,7 @@ public class KartoTest implements KeyListener {
 		return gml;
 	}
 
-	private void useOtherDisplay(MapData map) {
+	private void display() {
 		panel = new GMLPanel();
 		panel.setGMLObjects(updateBends());
 		JFrame frame = GMLPanel.showPanelInWindow(panel);

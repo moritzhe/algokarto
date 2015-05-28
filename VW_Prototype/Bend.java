@@ -1,8 +1,15 @@
 import java.awt.Color;
 
+import org.junit.BeforeClass;
+
 public class Bend extends Line {
 	private boolean isPositive;
-	private double area;
+	private double area = -1;
+	
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		KartoTest karto = new KartoTest();
+	}
 
 	public Bend(Point p1, Point p2, boolean pos) {
 		super();

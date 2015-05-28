@@ -3,7 +3,7 @@ import java.util.List;
 
 public class WM {
 
-	private MapData map;
+	private MapData mapWithData, testMap;
 
 	protected List<Bend> findBends(Line line) {
 		List<Bend> bends = new ArrayList<Bend>();
@@ -11,10 +11,10 @@ public class WM {
 			bends.add(new Bend(line));
 			return bends;
 		}
-		Bend bend = new Bend(line.get(0), line.get(1), positiveBend(
+		Bend bend = new Bend(line.get(0), line.get(1), isPositive(
 				line.get(0), line.get(1), line.get(2)));
 		for (int i = 2; i < line.size() - 1; i++) {
-			boolean pos = positiveBend(line.get(i - 1), line.get(i),
+			boolean pos = isPositive(line.get(i - 1), line.get(i),
 					line.get(i + 1));
 			bend.add(line.get(i));
 			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
@@ -22,7 +22,7 @@ public class WM {
 				bend = new Bend(line.get(i - 1), line.get(i), pos);
 			}
 		}
-		// Der letzte Punkt is immer auf der gleichen Bend wie der vorletzte
+		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte
 		bend.add(line.get(line.size() - 1));
 		bends.add(bend);
 		return bends;
@@ -36,7 +36,7 @@ public class WM {
 	 *            endpunkt
 	 * @return
 	 */
-	private boolean positiveBend(Point p1, Point p2, Point p3) {
+	protected boolean isPositive(Point p1, Point p2, Point p3) {
 		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x) > 0;
 	}
 
