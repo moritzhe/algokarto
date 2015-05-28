@@ -12,19 +12,35 @@ public class KartoTest implements KeyListener {
 	JFrame frame;
 	LinePanel pan;
 	MapData map;
+	GMLPanel panel;
 
 	public static void main(String[] args) {
 		new KartoTest();
 	}
 
-	// einlesen
+	// einlesen und display
 	public KartoTest() {
-		map = new MapData();
-		String data = "testdaten2";
+
+		String data = "";// "testdaten2/";
+		map = readData(data + "lines_out2.txt", data + "points_out2.txt");
+
+		useOtherDisplay(map);
+
+		// frame = new JFrame("Lines...");
+		// pan = new LinePanel(map);
+		// frame.add(pan);
+		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// frame.setBounds(200, 31, 1024, 768);
+		// frame.addKeyListener(this);
+		// frame.setVisible(true);
+	}
+
+	// einlesen
+	public MapData readData(String lineFile, String pointsFile) {
+		MapData map = new MapData();
 		String lines_out = null;
 		try {
-			lines_out = new String(Files.readAllBytes(Paths.get(// data+"/
-					"lines_out2.txt")));
+			lines_out = new String(Files.readAllBytes(Paths.get(lineFile)));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -50,8 +66,7 @@ public class KartoTest implements KeyListener {
 
 		String points_out = null;
 		try {
-			points_out = new String(Files.readAllBytes(Paths.get(// data+"/
-					"points_out2.txt")));
+			points_out = new String(Files.readAllBytes(Paths.get(pointsFile)));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -70,38 +85,22 @@ public class KartoTest implements KeyListener {
 					.doubleValue()));
 		}
 
-		useOtherDisplay(map);
-
-		// frame = new JFrame("Lines...");
-		// pan = new LinePanel(map);
-		// frame.add(pan);
-		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// frame.setBounds(200, 31, 1024, 768);
-		// frame.addKeyListener(this);
-		// frame.setVisible(true);
+		return map;
 	}
 
-	GMLPanel panel;
+	private List<GMLObject> updateBends() {
+		WM wm = new WM();
+		List<GMLObject> gml = new ArrayList<GMLObject>();
+		for (int i = 0; i < map.lines.size(); i++) {
+			gml.addAll(wm.findBends(map.lines.get(i)));
+		}
+		gml.addAll(map.pois);
+		return gml;
+	}
 
 	private void useOtherDisplay(MapData map) {
-		WM wm = new WM();
-		List<Bend> bends = new ArrayList<Bend>();
-		for (int i = 0; i < map.lines.size(); i++) {
-			bends.addAll(wm.findBends(map.lines.get(i)));
-		}
-
-		List<GMLObject> gml = new ArrayList<GMLObject>();
-		for (int i = 0; i < bends.size(); i++) {
-			gml.add(new GMLObject(bends.get(i)));
-		}
-		
-		for (int i=0; i<map.pois.size(); i++){
-			gml.add(map.pois.get(i).toGMLObject());
-		}
-
 		panel = new GMLPanel();
-		panel.list = gml;
-		panel.calculateGMLBounds();
+		panel.setGMLObjects(updateBends());
 		JFrame frame = GMLPanel.showPanelInWindow(panel);
 		frame.addKeyListener(this);
 	}
@@ -120,25 +119,9 @@ public class KartoTest implements KeyListener {
 	public void keyTyped(KeyEvent e) {
 		for (int i = 0; i < 20; ++i)
 			VW.Next(map);
-		WM wm = new WM();
-		List<Bend> bends = new ArrayList<Bend>();
-		for (int i = 0; i < map.lines.size(); i++) {
-			bends.addAll(wm.findBends(map.lines.get(i)));
-		}
 
-		List<GMLObject> gml = new ArrayList<GMLObject>();
-		for (int i = 0; i < bends.size(); i++) {
-			gml.add(new GMLObject(bends.get(i)));
-		}
-
-		panel.list = gml;
-		panel.calculateGMLBounds();
+		panel.setGMLObjects(updateBends());
 		panel.repaint();
-		// GMLPanel.setUpPanel(panel);
-
-		//
-		//
-		// pan.repaint();
 	}
 
 }

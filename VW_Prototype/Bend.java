@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 public class Bend extends Line {
 	private boolean isPositive;
 	private double area;
@@ -7,12 +9,18 @@ public class Bend extends Line {
 		add(p1);
 		add(p2);
 		isPositive = pos;
+		if (pos) {
+			setColor(Color.BLUE);
+		} else {
+			setColor(Color.RED);
+		}
 	}
 
 	public Bend(Line line) {
 		super();
 		this.points = line.points;
 		isPositive = false;
+		update();
 	}
 
 	public boolean isPositive() {
@@ -75,10 +83,10 @@ public class Bend extends Line {
 				((otherBend.getAdjustedSize() - getAdjustedSize()) / sizeNorm),
 				2);
 		double cmpSquare = Math
-				.pow(((otherBend.getCompactness() - getCompactness()) / sizeNorm),
+				.pow(((otherBend.getCompactness() - getCompactness()) / cmpNorm),
 						2);
 		double baseSquare = Math.pow(
-				((otherBend.getBaseLength() - getBaseLength()) / sizeNorm), 2);
+				((otherBend.getBaseLength() - getBaseLength()) / baseNorm), 2);
 		return Math.sqrt(sizeSquare + cmpSquare + baseSquare);
 	}
 
