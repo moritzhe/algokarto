@@ -5,7 +5,7 @@ import org.junit.BeforeClass;
 public class Bend extends Line {
 	private boolean isPositive;
 	private double area = -1;
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		KartoTest karto = new KartoTest();
@@ -67,6 +67,11 @@ public class Bend extends Line {
 		area = area();
 	}
 
+	/**
+	 * Curve/length
+	 * 
+	 * @return Curve/length (in radians per unit length)
+	 */
 	public double getAvgCurve() {
 		double curve = 0;
 		for (int i = 1; i < points.size() - 1; i++) {
@@ -89,9 +94,8 @@ public class Bend extends Line {
 		double sizeSquare = Math.pow(
 				((otherBend.getAdjustedSize() - getAdjustedSize()) / sizeNorm),
 				2);
-		double cmpSquare = Math
-				.pow(((otherBend.getCompactness() - getCompactness()) / cmpNorm),
-						2);
+		double cmpSquare = Math.pow(
+				((otherBend.getCompactness() - getCompactness()) / cmpNorm), 2);
 		double baseSquare = Math.pow(
 				((otherBend.getBaseLength() - getBaseLength()) / baseNorm), 2);
 		return Math.sqrt(sizeSquare + cmpSquare + baseSquare);
@@ -103,7 +107,7 @@ public class Bend extends Line {
 	 *            anfangspunkt
 	 * @param p3
 	 *            endpunkt
-	 * @return
+	 * @return zwischen 0 und pi
 	 */
 	private double getTheta(Point p1, Point p2, Point p3) {
 		return Math.acos(//

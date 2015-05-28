@@ -74,7 +74,7 @@ public class BendTest {
 
 	@Test
 	public void testArea() {
-		int[] area = {25,55,25};
+		int[] area = { 25, 55, 25 };
 		for (int i = 0; i < bends.size(); i++) {
 			assertEquals(area[i], bends.get(i).area(), 0.00001);
 		}
@@ -82,12 +82,23 @@ public class BendTest {
 
 	@Test
 	public void testGetCircumference() {
-		fail("Not yet implemented");
+		int[] circ = { 20, 32, 20 };
+		for (int i = 0; i < bends.size(); i++) {
+			assertEquals(circ[i], bends.get(i).getCircumference(), 0.00001);
+		}
 	}
 
 	@Test
 	public void testGetCompactness() {
-		fail("Not yet implemented");
+		double[] cmp = new double[3];
+		for (int i = 0; i < cmp.length; i++) {
+			cmp[i] = bends.get(i).area() / //
+					(Math.PI * (bends.get(i).getCircumference() / (2*Math.PI)) * (bends
+							.get(i).getCircumference() / (2*Math.PI)));
+		}
+		for (int i = 0; i < bends.size(); i++) {
+			assertEquals(cmp[i], bends.get(i).getCompactness(), 0.00001);
+		}
 	}
 
 	@Test
@@ -97,11 +108,14 @@ public class BendTest {
 
 	@Test
 	public void testGetAvgCurve() {
-		fail("Not yet implemented");
+		double[] values = { Math.PI / 15, 2 * Math.PI / 31, Math.PI / 15 };
+		for (int i = 0; i < bends.size(); i++) {
+			assertEquals(values[i], bends.get(i).getAvgCurve(), 0.00001);
+		}
 	}
-	
+
 	@Test
-	public void testToString(){
+	public void testToString() {
 		String[] points = {
 				"[Point [x=0.0, y=0.0], Point [x=5.0, y=0.0], Point [x=5.0, y=5.0], Point [x=0.0, y=5.0]]",
 				"[Point [x=5.0, y=5.0], Point [x=0.0, y=5.0], Point [x=0.0, y=10.0], Point [x=11.0, y=10.0], Point [x=11.0, y=5.0], Point [x=6.0, y=5.0]]",
