@@ -120,6 +120,10 @@ public class Bend extends Line {
 		
 	}
 	
+	//TODO: selbst und fremd schnitte
+	
+	//TODO: polygon contains point
+	
 	public void exaggerate(){
 		if (points.size() == 0) return;
 		final double exaggerationFactor = 0.5;

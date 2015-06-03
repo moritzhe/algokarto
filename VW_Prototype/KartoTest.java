@@ -90,7 +90,7 @@ public class KartoTest implements KeyListener {
 		WM wm = new WM();
 		List<GMLObject> gml = new ArrayList<GMLObject>();
 		for (int i = 0; i < map.lines.size(); i++) {
-			gml.addAll(wm.findBends(map.lines.get(i)));
+			gml.addAll(map.lines.get(i).findBends());
 		}
 		gml.addAll(map.pois);
 		return gml;

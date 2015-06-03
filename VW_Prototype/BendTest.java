@@ -32,7 +32,7 @@ public class BendTest {
 		line.add(new Point(11, 0));
 
 		bends = new ArrayList<Bend>();
-		bends.addAll(wm.findBends(line));
+		bends.addAll(line.findBends());
 	}
 
 	@Test

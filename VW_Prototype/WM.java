@@ -5,40 +5,70 @@ public class WM {
 
 	private MapData mapWithData, testMap;
 
-	protected List<Bend> findBends(Line line) {
-		List<Bend> bends = new ArrayList<Bend>();
-		if (line.size() < 3) {
-			bends.add(new Bend(line));
-			return bends;
-		}
-		Bend bend = new Bend(line.get(0), line.get(1), isPositive(
-				line.get(0), line.get(1), line.get(2)));
-		for (int i = 2; i < line.size() - 1; i++) {
-			boolean pos = isPositive(line.get(i - 1), line.get(i),
-					line.get(i + 1));
-			bend.add(line.get(i));
-			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
-				bends.add(bend);
-				bend = new Bend(line.get(i - 1), line.get(i), pos);
+	/** In radians */
+	public static final double ISOLATED_THRESHOLD = Math.PI / 4;
+
+	public static final double RELATIVE_ISOLATED_THRESHOLD = 1 / 5.0;
+	public static final double SIMILAR_THRESHOLD = .1;
+
+	public void simplify(MapData map, double userTolerance) {
+		boolean changeHappened = false;
+		do {
+			// detect bends
+			List<List<Bend>> list = new ArrayList<List<Bend>>();
+			for (Line line : map.lines) {
+				list.add(line.findBends());
 			}
-		}
-		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte
-		bend.add(line.get(line.size() - 1));
-		bends.add(bend);
-		return bends;
-	}
 
-	/**
-	 * 
-	 * @param p1
-	 *            anfangspunkt
-	 * @param p3
-	 *            endpunkt
-	 * @return
-	 */
-	protected boolean isPositive(Point p1, Point p2, Point p3) {
-		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x) > 0;
-	}
+			// loop over lines
+			for (List<Bend> bends : list) {
+				// loop over bends in line
+				for (int i = 0; i < list.size(); i++) {
 
-	
+					Bend bend = bends.get(i);
+					// Wenn gross genug, ignoriere bend einfach
+					if (bend.getAdjustedSize() < userTolerance) {
+
+						// EXAGGERATE ISOLATED BEND
+						// nicht erst, nicht letzt, und Nachbaren nur leicht
+						// gebeugt
+						if (i > 0
+								&& i < bends.size() - 1
+								&& bends.get(i - 1).getAvgCurve() < Math.min(
+										ISOLATED_THRESHOLD,
+										RELATIVE_ISOLATED_THRESHOLD
+												* bend.getAvgCurve())
+								&& bends.get(i + 1).getAvgCurve() < Math.min(
+										ISOLATED_THRESHOLD,
+										RELATIVE_ISOLATED_THRESHOLD
+												* bend.getAvgCurve())) {
+							bend.exaggerate();// TODO: oder vielleicht
+												// line.exaggerate(bend)?
+							changeHappened = true;
+						}
+
+						// COMBINE SIMILAR BENDS
+						// nicht letzt oder zweit letzt
+						// similar zu bend+2
+						// groesser als bend+1
+						if (i < bends.size() - 2
+								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
+								&& bend.area() > bends.get(i + 1).area()) {
+							bend.combine(bends.get(i + 1), bends.get(i + 2));
+							changeHappened = true;
+						}
+
+						// ELIMINATE LOCAL MINIMAL BEND
+						// nicht erst, nicht letzt, und kleiner als Nachbaren
+						if (i > 0 && i < bends.size() - 1
+								&& bend.area() < bends.get(i - 1).area()
+								&& bend.area() < bends.get(i + 1).area()) {
+							bend.eliminate();
+							changeHappened = true;
+						}
+					}
+				}
+			}
+		} while (changeHappened);
+	}
 }

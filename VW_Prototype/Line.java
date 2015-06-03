@@ -49,6 +49,41 @@ public class Line implements GMLObject{
 		points.remove(p);
 		update();
 	}
+	
+	protected List<Bend> findBends() {
+		List<Bend> bends = new ArrayList<Bend>();
+		if (this.size() < 3) {
+			bends.add(new Bend(this));
+			return bends;
+		}
+		Bend bend = new Bend(this.get(0), this.get(1), isPositive(
+				this.get(0), this.get(1), this.get(2)));
+		for (int i = 2; i < this.size() - 1; i++) {
+			boolean pos = isPositive(this.get(i - 1), this.get(i),
+					this.get(i + 1));
+			bend.add(this.get(i));
+			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
+				bends.add(bend);
+				bend = new Bend(this.get(i - 1), this.get(i), pos);
+			}
+		}
+		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte
+		bend.add(this.get(this.size() - 1));
+		bends.add(bend);
+		return bends;
+	}
+
+	/**
+	 * 
+	 * @param p1
+	 *            anfangspunkt
+	 * @param p3
+	 *            endpunkt
+	 * @return
+	 */
+	protected boolean isPositive(Point p1, Point p2, Point p3) {
+		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x) > 0;
+	}
 
 	public void update() {
 		length = 0;
