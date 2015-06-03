@@ -143,12 +143,12 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void mouseClicked(MouseEvent e) {
 		// Fuer dopple-click, raus zoomen.
 		double time2 = System.nanoTime();
-		if (time2 - time < 2500000) {
+		if (time2 - time < 200000000L) {
 			d = null;
 			calculateAffine();
 			repaint();
 		}
-		//System.out.println(time2 + " " + (time2 - time));
+		System.out.println(time2 + " " + (time2 - time));
 		time = time2;
 		
 		//Selection
