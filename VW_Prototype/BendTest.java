@@ -9,6 +9,7 @@ import org.junit.Test;
 public class BendTest {
 	private static MapData map;
 	private static List<Bend> bends;
+	private static Line line;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -19,7 +20,7 @@ public class BendTest {
 		// *--*.*--*
 		// |.......|
 		// *-------*
-		Line line = new Line();
+		line = new Line();
 		line.add(new Point(0, 0));
 		line.add(new Point(5, 0));
 		line.add(new Point(5, 5));
@@ -101,7 +102,16 @@ public class BendTest {
 
 	@Test
 	public void testGetAdjustedSize() {
-		fail("Not yet implemented");
+		// area * .75 / cmp
+		// this test assumes that area and cmp work
+		double[] adj = new double[3];
+		for (int i = 0; i < adj.length; i++) {
+			adj[i] = bends.get(i).area() * .75 / //
+					bends.get(i).getCompactness();
+		}
+		for (int i = 0; i < bends.size(); i++) {
+			assertEquals(adj[i], bends.get(i).getAdjustedSize(), 0.00001);
+		}
 	}
 
 	@Test
@@ -125,7 +135,8 @@ public class BendTest {
 
 	@Test
 	public void testSimilarityTo() {
-		fail("Not yet implemented");
+		assertEquals(0,bends.get(0).similarityTo(bends.get(2)),0.00001);
+		assertNotEquals(0,bends.get(0).similarityTo(bends.get(1)),0.00001);
 	}
 
 }

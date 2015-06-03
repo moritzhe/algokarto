@@ -53,7 +53,7 @@ public class WM {
 						// groesser als bend+1
 						if (i < bends.size() - 2
 								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
-								&& bend.area() > bends.get(i + 1).area()) {
+								&& bend.getAdjustedSize() > bends.get(i + 1).getAdjustedSize()) {
 							bend.combine(bends.get(i + 1), bends.get(i + 2));
 							changeHappened = true;
 						}
@@ -61,8 +61,8 @@ public class WM {
 						// ELIMINATE LOCAL MINIMAL BEND
 						// nicht erst, nicht letzt, und kleiner als Nachbaren
 						if (i > 0 && i < bends.size() - 1
-								&& bend.area() < bends.get(i - 1).area()
-								&& bend.area() < bends.get(i + 1).area()) {
+								&& bend.getAdjustedSize() < bends.get(i - 1).getAdjustedSize()
+								&& bend.getAdjustedSize() < bends.get(i + 1).getAdjustedSize()) {
 							bend.eliminate();
 							changeHappened = true;
 						}

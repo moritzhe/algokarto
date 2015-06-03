@@ -38,7 +38,7 @@ public class WMTest {
 		line.add(new Point(11, 0));
 
 		List<Bend> bends = new ArrayList<Bend>();
-		bends.addAll(wm.findBends(line));
+		bends.addAll(line.findBends());
 
 		// Found all the bends
 		assertEquals(3, bends.size());
