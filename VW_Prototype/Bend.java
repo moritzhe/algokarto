@@ -201,19 +201,19 @@ public class Bend extends Line {
 		assert(movementFactors.get(C) == 1.0);
 		assert(movementFactors.get(bendC.points.get(bendC.points.size()-1)) == 0.0);
 		
-		A.loesch();
-		C.loesch();
-		
-		
-		for(Point p : points){
-			double movementFactor = movementFactors.get(p).doubleValue();
-			p.setPosition(p.x + ADsx *movementFactor, p.y + ADsy * movementFactor);
-		}
-		
-		for(Point p : bendC.points){
-			double movementFactor = movementFactors.get(p).doubleValue();
-			p.setPosition(p.x + CDsx *movementFactor, p.y + CDsy * movementFactor);
-		}
+//		A.loesch();
+//		C.loesch();
+//		
+//		
+//		for(Point p : points){
+//			double movementFactor = movementFactors.get(p).doubleValue();
+//			p.setPosition(p.x + ADsx *movementFactor, p.y + ADsy * movementFactor);
+//		}
+//		
+//		for(Point p : bendC.points){
+//			double movementFactor = movementFactors.get(p).doubleValue();
+//			p.setPosition(p.x + CDsx *movementFactor, p.y + CDsy * movementFactor);
+//		}
 		
 	}
 	
