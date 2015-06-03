@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -56,6 +57,7 @@ public class Line implements GMLObject{
 		}
 
 		path = new Path2D.Double();
+		if (points.size() == 0) return;
 		path.moveTo(points.get(0).x, points.get(0).y);
 		for (int i = 1; i < points.size(); i++) {
 			path.lineTo(points.get(i).x, points.get(i).y);
@@ -74,6 +76,24 @@ public class Line implements GMLObject{
 		// Baseline-Laenge
 		return points.get(0).distance(points.get(points.size() - 1));
 	}
+	
+	public double getDistanceBetween(Point a, Point b) {
+		int aIdx = points.indexOf(a);
+		int bIdx = points.indexOf(b);
+		if (aIdx == -1 || bIdx == -1){
+			return -1;
+		}
+		if (aIdx > bIdx){
+			int tmp = bIdx;
+			bIdx = aIdx;
+			aIdx = tmp;
+		}
+		double dist = 0.0;
+		for (int i = aIdx; i < bIdx; ++i){
+			dist += points.get(i).distance(points.get(i+1));
+		}
+		return dist;
+	}
 
 	@Override
 	public Rectangle getBounds() {
@@ -82,6 +102,11 @@ public class Line implements GMLObject{
 
 	@Override
 	public void draw(Graphics2D g) {
+		drawWithColor(g, color);
+	}
+	
+	@Override
+	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();
 		g.setColor(color);
 		g.draw(path);

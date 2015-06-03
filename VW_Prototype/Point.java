@@ -25,7 +25,7 @@ public class Point extends Point2D.Double implements GMLObject {
 		lines = new ArrayList<Line>();
 	}
 
-	public void setPostition(double x, double y) {
+	public void setPosition(double x, double y) {
 		this.x = x;
 		this.y = y;
 		for (Line line : lines) {
@@ -45,8 +45,13 @@ public class Point extends Point2D.Double implements GMLObject {
 
 	@Override
 	public void draw(Graphics2D g) {
+		drawWithColor(g, Color.RED);
+	}
+	
+	@Override
+	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();
-		g.setColor(Color.RED);
+		g.setColor(color);
 		AffineTransform at = g.getTransform();
 
 		// half of final width/height in pixels

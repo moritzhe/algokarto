@@ -1,10 +1,14 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -22,6 +26,10 @@ public class GMLPanel extends JPanel implements MouseListener {
 	double xMin, xMax, yMin, yMax;
 	/** Most recent dimension of this JPanel */
 	Dimension d = new Dimension(0, 0);
+	/** Buffer for mouse Selection */
+	BufferedImage selectionBuffer;
+	/** selected Object */
+	int currentlySelectedObject;
 
 	public void setGMLObjects(List<GMLObject> gml){
 		list = gml;
@@ -76,22 +84,45 @@ public class GMLPanel extends JPanel implements MouseListener {
 		at.translate(-xMin, -yMax);
 		return at;
 	}
-
-	/** Draw the GML Objects */
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	
+	/** Draw GML Objects */
+	public void paintObjects(Graphics g, boolean drawHash){
 		Graphics2D gr = (Graphics2D) g;
 		// save G2D affine
 		AffineTransform save = gr.getTransform();
 		// change G2D affine to ours
 		gr.transform(calculateAffine());
+		//
+		Stroke defaultStroke = gr.getStroke();
+		Stroke selectedStroke = new BasicStroke(2000);
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
-			list.get(i).draw(gr);
+			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject){
+				gr.setStroke(selectedStroke);
+			}
+			
+			if (drawHash){
+				list.get(i).drawWithColor(gr, new Color(list.get(i).hashCode() & 0xFFFFFF));		
+			}
+			else{
+				list.get(i).draw(gr);				
+			}
+			gr.setStroke(defaultStroke);
 		}
 		// reset to old transform just in case
 		gr.setTransform(save);
+	}
+
+	/** Draw the GML Objects */
+	@Override
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		paintObjects(g, false);
+		selectionBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+		Graphics selectionGraphics = selectionBuffer.createGraphics();
+		paintObjects(selectionGraphics, true);
+		//Debug Code: Display selection Buffer
+		//g.drawImage(selectionBuffer, 0, 0, null);
 	}
 
 	public static JFrame showPanelInWindow(GMLPanel panel) {
@@ -101,7 +132,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 		window.add(panel);
 		window.pack();
 		window.setVisible(true);
-		window.addMouseListener(panel);
+		panel.addMouseListener(panel);
 		return window;
 	}
 
@@ -119,6 +150,14 @@ public class GMLPanel extends JPanel implements MouseListener {
 		}
 		//System.out.println(time2 + " " + (time2 - time));
 		time = time2;
+		
+		//Selection
+		int selection = selectionBuffer.getRGB(e.getX(), e.getY()) & 0xFFFFFF;
+		System.out.println(selection);
+		if (selection != currentlySelectedObject){
+			currentlySelectedObject = selection;
+			repaint();
+		}
 	}
 
 	@Override
@@ -177,6 +216,75 @@ public class GMLPanel extends JPanel implements MouseListener {
 		// this.at.concatenate(at);
 
 		repaint();
+	}
+	
+	public Bend getSelectedBend(){
+		Bend bend = null;
+		for (GMLObject obj: list){
+			if ((obj.hashCode() & 0xFFFFFF) == currentlySelectedObject && obj instanceof Bend) {
+				bend = (Bend) obj;
+			}
+		}
+		if (bend == null){
+			return null;
+		}
+		return bend;
+	}
+	
+	public void eliminateSelectedBend(){
+		Bend bend = getSelectedBend();
+		if (bend != null){
+			bend.eliminate();
+		}
+		else{
+			System.out.println("Keine Bend ausgewaehlt!");
+		}
+	}
+
+	public void exaggerateSelectedBend() {
+		Bend bend = getSelectedBend();
+		if (bend != null){
+			bend.exaggerate();
+		}
+		else{
+			System.out.println("Keine Bend ausgewaehlt!");
+		}
+	}
+	
+	public Bend nextBend(Bend bend){
+		for (GMLObject obj : list){
+			if (obj instanceof Bend){
+				Bend bendToTest = (Bend) obj;
+				if (bendToTest.points.get(0) == bend.points.get(bend.points.size()-2)){
+					if (bendToTest.points.get(1) == bend.points.get(bend.points.size()-1)){
+						return bendToTest;
+					}						
+				}
+			}
+		}
+		return null;
+	}
+
+	public void combineSelectedBend() {
+		Bend bend = getSelectedBend();
+		if (bend != null){
+			Bend bendB = nextBend(bend);
+			if (bendB != null){
+				Bend bendC = nextBend(bendB);
+				if (bendC != null){
+					bend.combine(bendB, bendC);
+				}
+				else{
+					System.out.println("Kein zweiter Nachbar");
+				}
+			}
+			else{
+				System.out.println("Kein erster Nachbar");
+			}
+		}
+		else{
+			System.out.println("Keine Bend ausgewaehlt!");
+		}
 	}
 
 }

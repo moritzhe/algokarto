@@ -106,7 +106,21 @@ public class KartoTest implements KeyListener {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-
+		if (e.getKeyCode() == e.VK_DELETE){
+			panel.eliminateSelectedBend();
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
+		else if(e.getKeyCode() == e.VK_E){
+			panel.exaggerateSelectedBend();
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
+		else if(e.getKeyCode() == e.VK_C){
+			panel.combineSelectedBend();
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
 	}
 
 	@Override
@@ -116,11 +130,12 @@ public class KartoTest implements KeyListener {
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		for (int i = 0; i < 20; ++i)
-			VW.Next(map);
-
-		panel.setGMLObjects(updateBends());
-		panel.repaint();
+		if (e.getKeyChar() == ' '){
+			for (int i = 0; i < 20; ++i)
+				VW.Next(map);
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
 	}
 
 }
