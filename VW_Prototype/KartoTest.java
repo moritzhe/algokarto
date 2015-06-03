@@ -10,7 +10,6 @@ import javax.swing.JFrame;
 
 public class KartoTest implements KeyListener {
 	JFrame frame;
-	LinePanel pan;
 	MapData map;
 	GMLPanel panel;
 

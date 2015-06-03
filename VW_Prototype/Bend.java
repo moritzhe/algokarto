@@ -146,6 +146,11 @@ public class Bend extends Line {
 		}
 	}
 	
+	/**
+	 * Combines this bend with next two bends
+	 * @param bendB Next
+	 * @param bendC Next next
+	 */
 	public void combine(Bend bendB, Bend bendC){
 		if (points.get(points.size()-1) != bendB.points.get(1)){
 			System.out.println("Nicht benachbart: B");

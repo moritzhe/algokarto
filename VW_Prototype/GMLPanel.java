@@ -31,11 +31,11 @@ public class GMLPanel extends JPanel implements MouseListener {
 	/** selected Object */
 	int currentlySelectedObject;
 
-	public void setGMLObjects(List<GMLObject> gml){
+	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
 		calculateGMLBounds();
 	}
-	
+
 	/**
 	 * Bounds of the GML Objects (call once at beginning)
 	 */
@@ -84,9 +84,9 @@ public class GMLPanel extends JPanel implements MouseListener {
 		at.translate(-xMin, -yMax);
 		return at;
 	}
-	
+
 	/** Draw GML Objects */
-	public void paintObjects(Graphics g, boolean drawHash){
+	public void paintObjects(Graphics g, boolean drawHash) {
 		Graphics2D gr = (Graphics2D) g;
 		// save G2D affine
 		AffineTransform save = gr.getTransform();
@@ -97,15 +97,16 @@ public class GMLPanel extends JPanel implements MouseListener {
 		Stroke selectedStroke = new BasicStroke(2000);
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
-			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject){
+			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject) {
 				gr.setStroke(selectedStroke);
 			}
-			
-			if (drawHash){
-				list.get(i).drawWithColor(gr, new Color(list.get(i).hashCode() & 0xFFFFFF));		
-			}
-			else{
-				list.get(i).draw(gr);				
+
+			if (drawHash) {
+				// TODO: Draw thicker so that it's easier to select
+				list.get(i).drawWithColor(gr,
+						new Color(list.get(i).hashCode() & 0xFFFFFF));
+			} else {
+				list.get(i).draw(gr);
 			}
 			gr.setStroke(defaultStroke);
 		}
@@ -118,11 +119,12 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		paintObjects(g, false);
-		selectionBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+		selectionBuffer = new BufferedImage(getWidth(), getHeight(),
+				BufferedImage.TYPE_INT_ARGB);
 		Graphics selectionGraphics = selectionBuffer.createGraphics();
 		paintObjects(selectionGraphics, true);
-		//Debug Code: Display selection Buffer
-		//g.drawImage(selectionBuffer, 0, 0, null);
+		// Debug Code: Display selection Buffer
+		// g.drawImage(selectionBuffer, 0, 0, null);
 	}
 
 	public static JFrame showPanelInWindow(GMLPanel panel) {
@@ -150,11 +152,11 @@ public class GMLPanel extends JPanel implements MouseListener {
 		}
 		System.out.println(time2 + " " + (time2 - time));
 		time = time2;
-		
-		//Selection
+
+		// Selection
 		int selection = selectionBuffer.getRGB(e.getX(), e.getY()) & 0xFFFFFF;
 		System.out.println(selection);
-		if (selection != currentlySelectedObject){
+		if (selection != currentlySelectedObject) {
 			currentlySelectedObject = selection;
 			repaint();
 		}
@@ -162,14 +164,10 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -203,7 +201,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 		double scale = Math.min(d.getWidth() * .9 / (xMax - xMin),
 				d.getHeight() * .9 / (yMax - yMin));
 
-		//System.out.println(xMin + " " + xMax + " " + yMin + " " + yMax);
+		// System.out.println(xMin + " " + xMax + " " + yMin + " " + yMax);
 
 		// y flips because computer's positive y is down
 		at.scale(scale, scale);
@@ -217,48 +215,65 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 		repaint();
 	}
-	
-	public Bend getSelectedBend(){
+
+	public Bend getSelectedBend() {
 		Bend bend = null;
-		for (GMLObject obj: list){
-			if ((obj.hashCode() & 0xFFFFFF) == currentlySelectedObject && obj instanceof Bend) {
+		for (GMLObject obj : list) {
+			if ((obj.hashCode() & 0xFFFFFF) == currentlySelectedObject
+					&& obj instanceof Bend) {
 				bend = (Bend) obj;
 			}
 		}
-		if (bend == null){
+		if (bend == null) {
 			return null;
 		}
 		return bend;
 	}
-	
-	public void eliminateSelectedBend(){
+
+	public void eliminateSelectedBend() {
 		Bend bend = getSelectedBend();
-		if (bend != null){
+		if (bend != null) {
 			bend.eliminate();
-		}
-		else{
+		} else {
 			System.out.println("Keine Bend ausgewaehlt!");
 		}
 	}
 
 	public void exaggerateSelectedBend() {
 		Bend bend = getSelectedBend();
-		if (bend != null){
+		if (bend != null) {
 			bend.exaggerate();
-		}
-		else{
+		} else {
 			System.out.println("Keine Bend ausgewaehlt!");
 		}
 	}
-	
-	public Bend nextBend(Bend bend){
-		for (GMLObject obj : list){
-			if (obj instanceof Bend){
+
+	public Bend nextBend(Bend bend) {
+		for (GMLObject obj : list) {
+			if (obj instanceof Bend) {
 				Bend bendToTest = (Bend) obj;
-				if (bendToTest.points.get(0) == bend.points.get(bend.points.size()-2)){
-					if (bendToTest.points.get(1) == bend.points.get(bend.points.size()-1)){
+				if (bendToTest.points.get(0) == bend.points.get(bend.points
+						.size() - 2)) {
+					if (bendToTest.points.get(1) == bend.points.get(bend.points
+							.size() - 1)) {
 						return bendToTest;
-					}						
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public Bend prevBend(Bend bend) {
+		for (GMLObject obj : list) {
+			if (obj instanceof Bend) {
+				Bend bendToTest = (Bend) obj;
+				if (bend.points.get(0) == bendToTest.points
+						.get(bendToTest.points.size() - 2)) {
+					if (bend.points.get(1) == bendToTest.points
+							.get(bendToTest.points.size() - 1)) {
+						return bendToTest;
+					}
 				}
 			}
 		}
@@ -267,22 +282,19 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 	public void combineSelectedBend() {
 		Bend bend = getSelectedBend();
-		if (bend != null){
+		if (bend != null) {
 			Bend bendB = nextBend(bend);
-			if (bendB != null){
-				Bend bendC = nextBend(bendB);
-				if (bendC != null){
-					bend.combine(bendB, bendC);
+			if (bendB != null) {
+				Bend bendC = prevBend(bend);
+				if (bendC != null) {
+					bendC.combine(bend, bendB);
+				} else {
+					System.out.println("Kein vorheriger Nachbar");
 				}
-				else{
-					System.out.println("Kein zweiter Nachbar");
-				}
-			}
-			else{
+			} else {
 				System.out.println("Kein erster Nachbar");
 			}
-		}
-		else{
+		} else {
 			System.out.println("Keine Bend ausgewaehlt!");
 		}
 	}
