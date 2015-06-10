@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,5 +151,166 @@ public class Line implements GMLObject {
 			str += points.get(i) + " ";
 		}
 		return str.trim();
+	}
+
+	public List<Point> getPointsInLowerBounds() {
+		List<Point> bp = new ArrayList<Point>();
+		if (size() <= 2)
+			return bp;
+		Rectangle r = getBounds();
+		Point start = points.get(0), end = points.get(size() - 1);
+
+		// consider start point extended beyond bounding box
+		List<Point> options = new ArrayList<Point>();
+		options.add(new Point(r.x - 10, start.y));
+		options.add(new Point(start.x, r.y - 10));
+		options.add(new Point(r.x + r.width + 10, start.y));
+		options.add(new Point(start.x, r.y + r.height + 10));
+		Point startOut = null;
+
+		for (int i = 0; i < 4; i++) {
+			boolean val = lineSegmentIntersectsInRange(start, options.get(i),
+					1, size() - 1);
+			if (!val) {
+				startOut = options.get(i);
+				break;
+			}
+		}
+
+		if (startOut == null) {
+			// TODO: fix this ugly case where the line is somehow looped around
+			// the start point.
+		}
+
+		// now extend the end point beyond the bounding box
+		options = new ArrayList<Point>();
+		options.add(new Point(r.x - 10, end.y));
+		options.add(new Point(end.x, r.y - 10));
+		options.add(new Point(r.x + r.width + 10, end.y));
+		options.add(new Point(end.x, r.y + r.height + 10));
+		Point endOut = null;
+
+		for (int i = 0; i < 4; i++) {
+			boolean val = lineSegmentIntersectsInRange(end, options.get(i), 0,
+					size() - 1);
+			if (!val) {
+				endOut = options.get(i);
+				break;
+			}
+		}
+
+		if (endOut == null) {
+			// TODO: fix this ugly case where the line is somehow looped around
+			// the end point.
+		}
+
+		Line extension = new Line();
+		for (Point p : points) {
+			extension.add(p);
+		}
+		extension.add(endOut);
+		Point cur = endOut;
+
+		// while you still need to go around a corner for it to turn out well
+		while (!(startOut.x == cur.x && (startOut.x < r.x || startOut.x > r.x
+				+ r.width))
+				|| (startOut.y == cur.y && (startOut.y < r.y || startOut.y > r.y
+						+ r.height))) {
+			// if at extreme x, move to top or bottom corner of that side
+			// closer to target
+			if (cur.x < r.x || cur.x > r.x + r.width) {
+				if (startOut.y < r.y + r.height / 2.0) {
+					Point p = new Point(cur.x, r.y - 10);
+					if (!p.equals(cur))
+						extension.add(p);
+				} else {
+					Point p = new Point(cur.x, r.y + r.height + 10);
+					if (!p.equals(cur))
+						extension.add(p);
+				}
+			}
+
+			// still need a corner?
+			if ((startOut.x == cur.x && (startOut.x < r.x || startOut.x > r.x
+					+ r.width))
+					|| (startOut.y == cur.y && (startOut.y < r.y || startOut.y > r.y
+							+ r.height))) {
+				break;
+			}
+
+			// if at extreme y, move to left or right corner of that side
+			// closer to target
+			if (cur.y < r.y || cur.y > r.y + r.height) {
+				if (startOut.x < r.x + r.width / 2.0) {
+					Point p = new Point(r.x - 10, cur.y);
+					if (!p.equals(cur))
+						extension.add(p);
+				} else {
+					Point p = new Point(r.x + r.width + 10, cur.y);
+					if (!p.equals(cur))
+						extension.add(p);
+				}
+			}
+		}
+		extension.add(startOut);
+
+		// In effect, add pluses outside bounding box to
+		// produce extension of line to ring with no
+		// self-intersections
+		// __________________
+		// | . . * . . . *
+		// | . * . * * * . *
+		// +| * . . . . . . *
+		// +| . . . . . * *
+		// +| --------- + ----
+		// ++++++++++++++
+
+		// TODO: figure out which points are in that ring
+		// return extension, too?
+
+		return null;
+	}
+
+	/**
+	 * True if line segments intersect, but false if segments are equal or do
+	 * not intersect
+	 * 
+	 * @param pointA1
+	 * @param pointA2
+	 * @param pointB1
+	 * @param pointB2
+	 * @return
+	 */
+	public static boolean lineSegmentsIntersect(Point pointA1, Point pointA2,
+			Point pointB1, Point pointB2) {
+		// if segments are actually equal
+		if ((pointA1.equals(pointB1) || pointA2.equals(pointB2))
+				|| (pointA1.equals(pointB2) || pointA2.equals(pointB1)))
+			return false;
+		// else
+		return Line2D.linesIntersect(pointA1.x, pointA1.y, pointA2.x,
+				pointA2.y, pointB1.x, pointB1.y, pointB2.x, pointB2.y);
+	}
+
+	public boolean lineSegmentIntersects(Point a, Point b) {
+		return lineSegmentIntersectsInRange(a, b, 0, size());
+	}
+
+	public boolean lineSegmentIntersectsInRange(Point a, Point b, int start,
+			int length) {
+		for (int i = start; i < start + length - 1; ++i) {
+			if (lineSegmentsIntersect(points.get(i), points.get(i + 1), a, b))
+				return true;
+		}
+		return false;
+	}
+
+	public boolean lineIntersects(Line line) {
+		for (int i = 0; i < line.points.size() - 1; ++i) {
+			if (lineSegmentIntersects(line.points.get(i),
+					line.points.get(i + 1)))
+				return true;
+		}
+		return false;
 	}
 }
