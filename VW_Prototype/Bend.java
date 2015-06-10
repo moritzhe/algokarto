@@ -1,4 +1,6 @@
 import java.awt.Color;
+import java.awt.Polygon;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,8 +9,9 @@ import java.util.Map;
 public class Bend extends Line {
 	private boolean isPositive;
 	private double area = -1;
+	private Line parentLine;
 
-	public Bend(Point p1, Point p2, boolean pos) {
+	public Bend(Point p1, Point p2, boolean pos, Line parentLine) {
 		super();
 		add(p1);
 		add(p2);
@@ -18,6 +21,7 @@ public class Bend extends Line {
 		} else {
 			setColor(Color.RED);
 		}
+		this.parentLine = parentLine;
 	}
 
 	public Bend(Line line) {
@@ -113,10 +117,27 @@ public class Bend extends Line {
 						/ (p1.distance(p2) * p2.distance(p3)));
 	}
 	
-	public void eliminate(){
+	public boolean eliminate(){
+		return eliminate(null);
+	}
+	
+	public boolean eliminate(MapData mapToCheck){
+		
+		if (mapToCheck != null){
+			//Schneiden Lines die BaseLine
+			for (Line line: mapToCheck.lines){
+				if (lineIntersectsBaseLine(line)) return false;
+			}
+			for (Point p: mapToCheck.pois){
+				if (isPointInBendArea(p)) return false;
+			}
+		}
+		
 		while(points.size() > 2){
 			points.get(1).loesch();
 		}
+		
+		return true;
 		
 	}
 	
@@ -124,8 +145,13 @@ public class Bend extends Line {
 	
 	//TODO: polygon contains point
 	
-	public void exaggerate(){
-		if (points.size() == 0) return;
+	public boolean exaggerate(){
+		return exaggerate(null);
+	}
+	
+	
+	public boolean exaggerate(MapData mapToCheck){
+		if (points.size() == 0) return false;
 		final double exaggerationFactor = 0.5;
 		final double baseLineLength = getBaseLength();
 		Point firstPoint = points.get(0);
@@ -133,7 +159,7 @@ public class Bend extends Line {
 		final double x = (firstPoint.x + lastPoint.x) / 2;
 		final double y = (firstPoint.y + lastPoint.y) / 2;
 		Point anchorPoint = new Point(x,y);
-		for (Point p : points){
+		for (Point p : parentLine.points){
 			final double distanceToAnchorPoint = p.distance(anchorPoint);
             
 			final double dx = (p.x - anchorPoint.x)/distanceToAnchorPoint;
@@ -148,6 +174,8 @@ public class Bend extends Line {
 			
 			p.setPosition(p.x+xOfsset, p.y + yOffset);
 		}
+		
+		return true;
 	}
 	
 	/**
@@ -156,6 +184,7 @@ public class Bend extends Line {
 	 * @param bendC Next next
 	 */
 	public void combine(Bend bendB, Bend bendC){
+		//Bends muessen benachbart sein
 		if (points.get(points.size()-1) != bendB.points.get(1)){
 			System.out.println("Nicht benachbart: B");
 			return;
@@ -165,13 +194,30 @@ public class Bend extends Line {
 			return;
 		}
 		
+		//Original Points to restore
+		List<Point> originalPoints = new ArrayList<Point>();
+		for (Point p : points){
+			p.beginOfTransaction();
+			originalPoints.add(p);
+		}
+		for (Point p : bendB.points){
+			p.beginOfTransaction();
+			originalPoints.add(p);
+		}
+		for (Point p : bendC.points){
+			p.beginOfTransaction();
+			originalPoints.add(p);
+		}
+		
+		//Vorgeschlagener Wert vom Paper
 		final double combinedPeakFactor = 1.2;
 		
+		//Peaks finden
 		Point A = getPeak();
 		Point B = bendB.getPeak();
 		Point C = bendC.getPeak();
 		
-		//Ueberfluessige Punkte eliminieren
+		//Jetzt eeberfluessig gewordene Punkte eliminieren
 		setNewEndingPoint(A);
 		bendB.removeAllPointsExceptFor(A,B,C);
 		bendC.setNewStartingPoint(C);
@@ -182,6 +228,7 @@ public class Bend extends Line {
 		BDx *= combinedPeakFactor;
 		BDy *= combinedPeakFactor;
 		
+		//B wird neuer Peak
 		B.setPosition(B.x + BDx, B.y + BDy);
 		Point Ds = B;
 		
@@ -191,39 +238,72 @@ public class Bend extends Line {
 		double CDsx = Ds.x - C.x;
 		double CDsy = Ds.y - C.y;		
 		
+		//Bewegung pro Punkt
 		Map<Point,Double> movementFactors = new HashMap<Point,Double>();	
 		
 		for (Point p : points){
 			Point firstPoint = points.get(0);
 			double distanceToFirst = getDistanceBetween(firstPoint, p);
 			double factor = distanceToFirst / getLength();
-			movementFactors.put(p, factor);
+			movementFactors.put(p, factor * 0.5);
+			//System.out.println(factor);
 		}
 		assert(movementFactors.get(A) == 1.0);
 		assert(movementFactors.get(points.get(0)) == 0.0);
 		
+		//System.out.println("-");
+		
 		for (Point p : bendC.points){
 			Point lastPoint = bendC.points.get(bendC.points.size()-1);
 			double distanceToLast = bendC.getDistanceBetween(lastPoint, p);
-			movementFactors.put(p, distanceToLast / bendC.getLength());
+			double factor = distanceToLast / bendC.getLength();
+			movementFactors.put(p, factor * 0.5);
+			//System.out.println(factor);
 		}
 		assert(movementFactors.get(C) == 1.0);
 		assert(movementFactors.get(bendC.points.get(bendC.points.size()-1)) == 0.0);
+		assert(bendC.getLength() == bendC.getDistanceBetween(bendC.points.get(0),bendC.points.get(bendC.points.size())));
 		
-//		A.loesch();
-//		C.loesch();
+
+		//DebugCode
+//		Point _A = points.get(2);
+//		Point _F = points.get(1);
+//		Point _E = points.get(0);
+//		double testFactor = _F.distance(_E) / (_A.distance(_F) + _F.distance(_E));
+//		System.out.println(testFactor);
+//		System.out.println(":" + (_F.x + ADsx * testFactor) + "," +(_F.y + ADsy * testFactor));
 //		
+//		//DebugCode
+//		_A = bendC.points.get(0);
+//		_F = bendC.points.get(1);
+//		_E = bendC.points.get(2);
+//		testFactor = _F.distance(_E) / (_A.distance(_F) + _F.distance(_E));
+//		System.out.println(testFactor);
 //		
-//		for(Point p : points){
-//			double movementFactor = movementFactors.get(p).doubleValue();
-//			p.setPosition(p.x + ADsx *movementFactor, p.y + ADsy * movementFactor);
-//		}
+//		System.out.println("___");
+//		System.out.println(A.x);
+//		System.out.println(A.y);
 //		
-//		for(Point p : bendC.points){
-//			double movementFactor = movementFactors.get(p).doubleValue();
-//			p.setPosition(p.x + CDsx *movementFactor, p.y + CDsy * movementFactor);
-//		}
+//		System.out.println(Ds.x);
+//		System.out.println(Ds.y);
+//		
+//		System.out.println(ADsx);
+//		System.out.println(ADsy);
 		
+		A.loesch();
+		C.loesch();
+		
+		
+		for(Point p : points){
+			double movementFactor = movementFactors.get(p).doubleValue();
+			p.setPosition(p.x + ADsx * movementFactor, p.y + ADsy * movementFactor);
+		}
+		
+		for(Point p : bendC.points){
+			double movementFactor = movementFactors.get(p).doubleValue();
+			p.setPosition(p.x + CDsx * movementFactor, p.y + CDsy * movementFactor);
+		}
+//		System.out.println(":" + _F.x + "," + _F.y);
 	}
 	
 	public Point getPeak(){
@@ -278,5 +358,56 @@ public class Bend extends Line {
 	    final double pi = Math.PI;
 	    return (1.0/Math.sqrt(2*pi*sigma2))*Math.exp(-(((x-my)*(x-my))/(2*sigma2)));
 	}
+
+	public boolean isPointInBendArea(Point p) {
+
+		int numPoints = points.size();
+		int i = 0;
+		int j = numPoints - 1;
+		int numberOfIntersections = 0;
+		for (; i < numPoints; i++) {
+			Point pointI = points.get(i);
+			Point pointJ = points.get(j);
+			if (pointI.y < p.y && pointJ.y >= p.y || pointJ.y < p.y && pointI.y >= p.y) {
+				if (pointI.x + (p.y - pointI.y) / (pointJ.y - pointI.y) * (pointJ.x - pointI.x) < p.x) {
+					numberOfIntersections++;
+				}
+			}
+			j = i;
+		}
+
+		return (numberOfIntersections % 2) == 1;
+	}
+	
+	public static boolean lineSegmentsIntersect(Point pointA1, Point pointA2, Point pointB1, Point pointB2){
+		return Line2D.linesIntersect(pointA1.x, pointA1.y, pointA2.x, pointA2.y, pointB1.x, pointB1.y, pointB2.x, pointB2.y);
+	}
+	
+	public boolean lineSegmentIntersectsBend(Point a, Point b){
+		for (int i = 0; i < points.size() - 1; ++i){
+			if (lineSegmentsIntersect(points.get(i), points.get(i+1), a, b)) return true;
+		}
+		return false;
+	}
+	
+	public boolean lineIntersectsBend(Line line){
+		for (int i = 0; i < line.points.size() - 1; ++i){
+			if (lineSegmentIntersectsBend(line.points.get(i), line.points.get(i+1))) return true;
+		}
+		return false;
+	}
+	
+	public boolean lineIntersectsBaseLine(Line line){
+		for (int i = 0; i < line.points.size() - 1; ++i){
+			if (line == parentLine){
+				if (line.points.get(i) == points.get(0) || line.points.get(i+1) == points.get(0) ||
+					line.points.get(i) == points.get(points.size()-1) || line.points.get(i+1) == points.get(points.size()-1)){
+					continue;
+				}
+			}
+			if (lineSegmentsIntersect(line.points.get(i), line.points.get(i+1), points.get(0), points.get(points.size()-1))) return true;
+		}
+		return false;
+	}	
 
 }

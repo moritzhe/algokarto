@@ -57,14 +57,14 @@ public class Line implements GMLObject{
 			return bends;
 		}
 		Bend bend = new Bend(this.get(0), this.get(1), isPositive(
-				this.get(0), this.get(1), this.get(2)));
+				this.get(0), this.get(1), this.get(2)), this);
 		for (int i = 2; i < this.size() - 1; i++) {
 			boolean pos = isPositive(this.get(i - 1), this.get(i),
 					this.get(i + 1));
 			bend.add(this.get(i));
 			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
 				bends.add(bend);
-				bend = new Bend(this.get(i - 1), this.get(i), pos);
+				bend = new Bend(this.get(i - 1), this.get(i), pos, this);
 			}
 		}
 		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte

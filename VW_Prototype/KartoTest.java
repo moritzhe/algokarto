@@ -78,9 +78,11 @@ public class KartoTest implements KeyListener {
 					.replaceAll("</gml\\:coordinates.*$", "")
 					.replaceAll(" $", "");
 			String[] string_point_split = points_split[i].split(",");
-			map.pois.add(new Point(new Double(string_point_split[0])
-					.doubleValue(), new Double(string_point_split[1])
-					.doubleValue()));
+			if (string_point_split.length >= 2){
+				map.pois.add(new Point(new Double(string_point_split[0])
+						.doubleValue(), new Double(string_point_split[1])
+						.doubleValue()));
+			}
 		}
 
 		return map;
@@ -98,6 +100,7 @@ public class KartoTest implements KeyListener {
 
 	private void display() {
 		panel = new GMLPanel();
+		panel.map = map;
 		panel.setGMLObjects(updateBends());
 		JFrame frame = GMLPanel.showPanelInWindow(panel);
 		frame.addKeyListener(this);

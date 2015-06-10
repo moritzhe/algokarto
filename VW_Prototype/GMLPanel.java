@@ -30,6 +30,8 @@ public class GMLPanel extends JPanel implements MouseListener {
 	BufferedImage selectionBuffer;
 	/** selected Object */
 	int currentlySelectedObject;
+	
+	public MapData map;
 
 	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
@@ -94,7 +96,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 		gr.transform(calculateAffine());
 		//
 		Stroke defaultStroke = gr.getStroke();
-		Stroke selectedStroke = new BasicStroke(2000);
+		Stroke selectedStroke = new BasicStroke(2);//2000
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
 			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject) {
@@ -233,7 +235,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void eliminateSelectedBend() {
 		Bend bend = getSelectedBend();
 		if (bend != null) {
-			bend.eliminate();
+			bend.eliminate(map);
 		} else {
 			System.out.println("Keine Bend ausgewaehlt!");
 		}
