@@ -3,7 +3,7 @@ import java.util.List;
 
 public class WM {
 
-	private MapData mapWithData, testMap;
+	//private MapData mapWithData, testMap;
 
 	/** In radians */
 	public static final double ISOLATED_THRESHOLD = Math.PI / 4;
@@ -11,9 +11,11 @@ public class WM {
 	public static final double RELATIVE_ISOLATED_THRESHOLD = 1 / 5.0;
 	public static final double SIMILAR_THRESHOLD = .1;
 
-	public void simplify(MapData map, double userTolerance) {
-		boolean changeHappened = false;
+	public static void simplify(MapData map, double userTolerance) {
+		boolean changeHappened;
+		int[] countChanges = new int[3];
 		do {
+			changeHappened = false;
 			// detect bends
 			List<List<Bend>> list = new ArrayList<List<Bend>>();
 			for (Line line : map.lines) {
@@ -23,7 +25,7 @@ public class WM {
 			// loop over lines
 			for (List<Bend> bends : list) {
 				// loop over bends in line
-				for (int i = 0; i < list.size(); i++) {
+				for (int i = 0; i < bends.size(); i++) {
 
 					Bend bend = bends.get(i);
 					// Wenn gross genug, ignoriere bend einfach
@@ -45,6 +47,8 @@ public class WM {
 							bend.exaggerate();// TODO: oder vielleicht
 												// line.exaggerate(bend)?
 							changeHappened = true;
+							countChanges[0] ++;
+							break;
 						}
 
 						// COMBINE SIMILAR BENDS
@@ -56,6 +60,8 @@ public class WM {
 								&& bend.getAdjustedSize() > bends.get(i + 1).getAdjustedSize()) {
 							bend.combine(bends.get(i + 1), bends.get(i + 2));
 							changeHappened = true;
+							countChanges[1]++;
+							break;
 						}
 
 						// ELIMINATE LOCAL MINIMAL BEND
@@ -65,10 +71,16 @@ public class WM {
 								&& bend.getAdjustedSize() < bends.get(i + 1).getAdjustedSize()) {
 							bend.eliminate();
 							changeHappened = true;
+							countChanges[2]++;
+							break;
 						}
 					}
 				}
 			}
 		} while (changeHappened);
+		System.out.println("Made "+countChanges[0]+" exaggerations,\n\t"+countChanges[1]+" combinations, and\n\t"+countChanges[2]+" eliminations");
+		System.out.println("There are now "+map.getSegments()+" segments left");
+		System.out.println(userTolerance);
+		System.out.println();
 	}
 }

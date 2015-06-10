@@ -13,4 +13,12 @@ public class MapData {
 		this.lines = lines;
 		this.pois = pois;
 	}
+	
+	public int getSegments(){
+		int segments = 0;
+		for (Line line : lines) {
+			segments+= line.size()-1;
+		}
+		return segments;
+	}
 }

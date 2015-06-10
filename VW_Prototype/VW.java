@@ -1,15 +1,27 @@
 public class VW {
 	// Entfernt einen Punkt
-	public static void Next(MapData map) {
-		double leastEffectiveArea = Double.POSITIVE_INFINITY;
+	public static void Next(MapData map, boolean useAngle) {
+		double minValue = Double.POSITIVE_INFINITY;
 		int leastEffLineIdx = -1;
 		int leastEffPointIdx = -1;
 		for (int k = 0; k < map.lines.size(); ++k) {
 			pointLoop: for (int i = 1; i < map.lines.get(k).size() - 1; ++i) {
-				double area = effectiveArea(map.lines.get(k).get(i - 1),
-						map.lines.get(k).get(i), map.lines.get(k).get(i + 1));
-				if (area < leastEffectiveArea) {
-					//Suche nach Staedten / POIs, die Reduzierung verhindern
+
+				double value;
+				if (useAngle) {
+					// angle
+					value = Bend.getTheta(map.lines.get(k).get(i - 1),
+							map.lines.get(k).get(i), map.lines.get(k)
+									.get(i + 1));
+				} else {
+					// area
+					value = effectiveArea(map.lines.get(k).get(i - 1),
+							map.lines.get(k).get(i), map.lines.get(k)
+									.get(i + 1));
+				}
+
+				if (value < minValue) {
+					// Suche nach Staedten / POIs, die Reduzierung verhindern
 					for (Point poi : map.pois) {
 						if (inTrig(map.lines.get(k).get(i - 1), map.lines
 								.get(k).get(i), map.lines.get(k).get(i + 1),
@@ -17,30 +29,29 @@ public class VW {
 							continue pointLoop;
 						}
 					}
-					//Suche nach Linienschnitten, die Reduzierung verhindern
-					for (Line line : map.lines){
+					// Suche nach Linienschnitten, die Reduzierung verhindern
+					for (Line line : map.lines) {
 						for (Point point : line.points) {
 							Point p1 = map.lines.get(k).get(i - 1);
 							Point p2 = map.lines.get(k).get(i);
 							Point p3 = map.lines.get(k).get(i + 1);
 							if (inTrig(p1, p2, p3, point) && p1 != point
-									&& p2 != point && p3!= point) {
+									&& p2 != point && p3 != point) {
 								continue pointLoop;
 							}
 						}
 					}
 
-					leastEffectiveArea = area;
+					minValue = value;
 					leastEffLineIdx = k;
 					leastEffPointIdx = i;
-
 				}
 			}
-
 		}
-		if (leastEffPointIdx != -1)
+		if (leastEffPointIdx != -1) {
 			map.lines.get(leastEffLineIdx).remove(leastEffPointIdx);
-
+			System.out.println("Min value is: "+minValue);
+		}
 	}
 
 	private static double effectiveArea(Point a, Point b, Point c) {

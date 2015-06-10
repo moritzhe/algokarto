@@ -78,7 +78,7 @@ public class KartoTest implements KeyListener {
 					.replaceAll("</gml\\:coordinates.*$", "")
 					.replaceAll(" $", "");
 			String[] string_point_split = points_split[i].split(",");
-			if (string_point_split.length >= 2){
+			if (string_point_split.length >= 2) {
 				map.pois.add(new Point(new Double(string_point_split[0])
 						.doubleValue(), new Double(string_point_split[1])
 						.doubleValue()));
@@ -108,17 +108,15 @@ public class KartoTest implements KeyListener {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == e.VK_DELETE){
+		if (e.getKeyCode() == e.VK_DELETE) {
 			panel.eliminateSelectedBend();
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
-		}
-		else if(e.getKeyCode() == e.VK_E){
+		} else if (e.getKeyCode() == e.VK_E) {
 			panel.exaggerateSelectedBend();
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
-		}
-		else if(e.getKeyCode() == e.VK_C){
+		} else if (e.getKeyCode() == e.VK_C) {
 			panel.combineSelectedBend();
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
@@ -130,11 +128,27 @@ public class KartoTest implements KeyListener {
 
 	}
 
+	private static double threshold = 50000;
+	// Massachusetts shouldn't exaggerate bottom left bend
+	private static double maxThreshold = 1.024E8;
+
 	@Override
 	public void keyTyped(KeyEvent e) {
-		if (e.getKeyChar() == ' '){
+		if (e.getKeyChar() == ' ') {
+			// for (int i = 0; i < 20; ++i)
+			// VW.Next(map);
+			WM.simplify(map, threshold);
+			threshold = Math.min(threshold * 2, maxThreshold);
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
+		if (e.getKeyChar() == 'v' || e.getKeyChar() == 'V') {
 			for (int i = 0; i < 20; ++i)
-				VW.Next(map);
+				VW.Next(map,true);
+			System.out.println("There are now "+map.getSegments()+" segments left");
+			System.out.println();
+			// WM.simplify(map, threshold);
+			// threshold = Math.min(threshold * 2, maxThreshold);
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		}

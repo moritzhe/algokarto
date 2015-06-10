@@ -80,6 +80,17 @@ public class BendTest {
 	}
 
 	@Test
+	public void testGetTheta() {
+		// *--*.*--*
+		// ...|.|
+		// *--*.*--*
+		// |.......|
+		// *-------*
+		assertEquals(Math.PI * 3 / 4.0,
+				Bend.getTheta(line.get(0), line.get(1), line.get(3)), 0.00001);
+	}
+
+	@Test
 	public void testGetCircumference() {
 		int[] circ = { 20, 32, 20 };
 		for (int i = 0; i < bends.size(); i++) {
@@ -92,8 +103,9 @@ public class BendTest {
 		double[] cmp = new double[3];
 		for (int i = 0; i < cmp.length; i++) {
 			cmp[i] = bends.get(i).area() / //
-					(Math.PI * (bends.get(i).getCircumference() / (2*Math.PI)) * (bends
-							.get(i).getCircumference() / (2*Math.PI)));
+					(Math.PI
+							* (bends.get(i).getCircumference() / (2 * Math.PI)) * (bends
+							.get(i).getCircumference() / (2 * Math.PI)));
 		}
 		for (int i = 0; i < bends.size(); i++) {
 			assertEquals(cmp[i], bends.get(i).getCompactness(), 0.00001);
@@ -135,8 +147,8 @@ public class BendTest {
 
 	@Test
 	public void testSimilarityTo() {
-		assertEquals(0,bends.get(0).similarityTo(bends.get(2)),0.00001);
-		assertNotEquals(0,bends.get(0).similarityTo(bends.get(1)),0.00001);
+		assertEquals(0, bends.get(0).similarityTo(bends.get(2)), 0.00001);
+		assertNotEquals(0, bends.get(0).similarityTo(bends.get(1)), 0.00001);
 	}
 
 }
