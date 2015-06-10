@@ -1,6 +1,10 @@
 public class VW {
+	
+	public static void removeAllSmall(MapData map, double angle){
+		while(Next(map,true)<angle);
+	}
 	// Entfernt einen Punkt
-	public static void Next(MapData map, boolean useAngle) {
+	public static double Next(MapData map, boolean useAngle) {
 		double minValue = Double.POSITIVE_INFINITY;
 		int leastEffLineIdx = -1;
 		int leastEffPointIdx = -1;
@@ -52,6 +56,7 @@ public class VW {
 			map.lines.get(leastEffLineIdx).remove(leastEffPointIdx);
 			System.out.println("Min value is: "+minValue);
 		}
+		return minValue;
 	}
 
 	private static double effectiveArea(Point a, Point b, Point c) {

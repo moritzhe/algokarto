@@ -12,16 +12,64 @@ public class KartoTest implements KeyListener {
 	JFrame frame;
 	MapData map;
 	GMLPanel panel;
+	double vwAngleThreshold = Math.PI / 72;
 
 	public static void main(String[] args) {
 		KartoTest karto = new KartoTest();
-		karto.display();
+
+		if (args == null || args.length < 4) {
+			karto.display();
+		} else {
+			int maxEdgesToKeep = Integer.parseInt(args[0]);
+			String lineInput = args[1];
+			String pointInput = args[2];
+			String output = args[3];
+
+			karto.map = karto.readData(lineInput, pointInput);
+			// TODO: console
+
+			karto.simplify(maxEdgesToKeep);
+			karto.writeFile(output);
+		}
+	}
+
+	private void writeFile(String output) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void simplify(int maxEdgesToKeep) {
+		int countWM = 0, countVW = 0;
+		int segments = map.getSegments();
+		double threshold = 0.001;
+		while (segments > maxEdgesToKeep && threshold < maxThreshold) {
+			WM.simplify(map, threshold);
+			countWM += segments - map.getSegments();
+			segments = map.getSegments();
+			VW.removeAllSmall(map, vwAngleThreshold);
+			countVW += segments - map.getSegments();
+			segments = map.getSegments();
+			threshold = Math.min(threshold * 2, maxThreshold);
+		}
+
+		double vwAtEnd = 0;
+		while (segments > maxEdgesToKeep) {
+			VW.Next(map, false);
+			segments--;
+			if (segments != map.getSegments()) {
+				System.out.println("Unable to continue removing lines");
+				break;
+			}
+			vwAtEnd++;
+		}
+		System.out.println(countWM + " " + countVW + " " + vwAtEnd);
 	}
 
 	// einlesen und display
 	public KartoTest() {
 
 		String data = "";// "testdaten2/";
+		// map = readData(data + "iceland", data + "emptypoints");
 		map = readData(data + "lines_out2.txt", data + "points_out2.txt");
 
 		// frame = new JFrame("Lines...");
@@ -128,9 +176,10 @@ public class KartoTest implements KeyListener {
 
 	}
 
-	private static double threshold = 50000;
+	private static double threshold = 50000;// .001;
 	// Massachusetts shouldn't exaggerate bottom left bend
 	private static double maxThreshold = 1.024E8;
+	private static double edges = -1;
 
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -144,11 +193,25 @@ public class KartoTest implements KeyListener {
 		}
 		if (e.getKeyChar() == 'v' || e.getKeyChar() == 'V') {
 			for (int i = 0; i < 20; ++i)
-				VW.Next(map,true);
-			System.out.println("There are now "+map.getSegments()+" segments left");
+				VW.Next(map, true);
+			System.out.println("There are now " + map.getSegments()
+					+ " segments left");
 			System.out.println();
 			// WM.simplify(map, threshold);
 			// threshold = Math.min(threshold * 2, maxThreshold);
+			panel.setGMLObjects(updateBends());
+			panel.repaint();
+		}
+		if (e.getKeyChar() == 's' || e.getKeyChar() == 'S') {
+			if (edges < 0) {
+				edges = .75 * map.getSegments();
+			}
+			simplify((int) edges);
+			edges *= .75;
+
+			System.out.println("There are now " + map.getSegments()
+					+ " segments left");
+			System.out.println();
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		}

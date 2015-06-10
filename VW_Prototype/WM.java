@@ -9,7 +9,7 @@ public class WM {
 	public static final double ISOLATED_THRESHOLD = Math.PI / 4;
 
 	public static final double RELATIVE_ISOLATED_THRESHOLD = 1 / 5.0;
-	public static final double SIMILAR_THRESHOLD = .1;
+	public static final double SIMILAR_THRESHOLD = 1;
 
 	public static void simplify(MapData map, double userTolerance) {
 		boolean changeHappened;

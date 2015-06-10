@@ -95,7 +95,8 @@ public class GMLPanel extends JPanel implements MouseListener {
 		// change G2D affine to ours
 		gr.transform(calculateAffine());
 		//
-		Stroke defaultStroke = gr.getStroke();
+		Stroke defaultStroke = new BasicStroke((float) .01);//gr.getStroke();
+		gr.setStroke(defaultStroke);
 		Stroke selectedStroke = new BasicStroke(2);//2000
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
