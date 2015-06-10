@@ -1,10 +1,26 @@
 public class VW {
-	
-	public static void removeAllSmall(MapData map, double angle){
-		while(Next(map,true)<angle);
+
+	public static void removeAllSmall(MapData map, double angle) {
+		double[] values = findNext(map, true);
+		while (values[2] < angle) {
+			if (values[0] != -1) {
+				map.lines.get((int) values[1]).remove((int) values[0]);
+				System.out.println("Min value is: " + values[2]);
+			}
+			values = findNext(map, true);
+		}
 	}
+
+	public static void Next(MapData map, boolean useAngle) {
+		double[] values = findNext(map, true);
+		if (values[0] != -1) {
+			map.lines.get((int) values[1]).get((int) values[0]).loesch();
+			System.out.println("Min value is: " + values[2]);
+		}
+	}
+
 	// Entfernt einen Punkt
-	public static double Next(MapData map, boolean useAngle) {
+	private static double[] findNext(MapData map, boolean useAngle) {
 		double minValue = Double.POSITIVE_INFINITY;
 		int leastEffLineIdx = -1;
 		int leastEffPointIdx = -1;
@@ -52,11 +68,7 @@ public class VW {
 				}
 			}
 		}
-		if (leastEffPointIdx != -1) {
-			map.lines.get(leastEffLineIdx).remove(leastEffPointIdx);
-			System.out.println("Min value is: "+minValue);
-		}
-		return minValue;
+		return new double[] { leastEffPointIdx, leastEffLineIdx, minValue };
 	}
 
 	private static double effectiveArea(Point a, Point b, Point c) {

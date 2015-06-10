@@ -69,16 +69,13 @@ public class KartoTest implements KeyListener {
 	public KartoTest() {
 
 		String data = "algokarto/";// "testdaten2/";
+		int ind = 4;
 		// map = readData(data + "iceland", data + "emptypoints");
-		map = readData(data + "lines_out2.txt", data + "points_out2.txt");
-
-		// frame = new JFrame("Lines...");
-		// pan = new LinePanel(map);
-		// frame.add(pan);
-		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// frame.setBounds(200, 31, 1024, 768);
-		// frame.addKeyListener(this);
-		// frame.setVisible(true);
+		map = readData(data + "lines_out"+ind+".txt", data + "points_out"+ind+".txt");
+		//1: New Hampshire
+		//2: Massachusetts
+		//3: Paper combine test
+		//4: Iceland
 	}
 
 	// einlesen
@@ -193,7 +190,7 @@ public class KartoTest implements KeyListener {
 		}
 		if (e.getKeyChar() == 'v' || e.getKeyChar() == 'V') {
 			for (int i = 0; i < 20; ++i)
-				VW.Next(map, true);
+				VW.Next(map, false);
 			System.out.println("There are now " + map.getSegments()
 					+ " segments left");
 			System.out.println();
