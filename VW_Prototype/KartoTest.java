@@ -68,7 +68,7 @@ public class KartoTest implements KeyListener {
 	// einlesen und display
 	public KartoTest() {
 
-		String data = "";// "testdaten2/";
+		String data = "algokarto/";// "testdaten2/";
 		// map = readData(data + "iceland", data + "emptypoints");
 		map = readData(data + "lines_out2.txt", data + "points_out2.txt");
 
