@@ -4,7 +4,7 @@ public class VW {
 		double[] values = findNext(map, true);
 		while (values[2] < angle) {
 			if (values[0] != -1) {
-				map.lines.get((int) values[1]).remove((int) values[0]);
+				map.lines.get((int) values[1]).get((int) values[0]).loesch();
 				System.out.println("Min value is: " + values[2]);
 			}
 			values = findNext(map, true);

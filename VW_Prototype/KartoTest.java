@@ -1,6 +1,9 @@
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,9 +16,20 @@ public class KartoTest implements KeyListener {
 	MapData map;
 	GMLPanel panel;
 	double vwAngleThreshold = Math.PI / 72;
+	private String header = ":<gml:LineString srsName=\"EPSG:54004\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:coordinates decimal=\".\" cs=\",\" ts=\" \">";
+	private String footer = " </gml:coordinates></gml:LineString>";
 
 	public static void main(String[] args) {
 		KartoTest karto = new KartoTest();
+
+		// 1: New Hampshire
+		// 2: Massachusetts
+		// 3: Paper combine test
+		// 4: Iceland
+		// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
+		int id = 5;
+		args = new String[] { "300", "algokarto/lines_out" + id + ".txt",
+				"algokarto/points_out" + id + ".txt", "results.txt" };
 
 		if (args == null || args.length < 4) {
 			karto.display();
@@ -25,17 +39,27 @@ public class KartoTest implements KeyListener {
 			String pointInput = args[2];
 			String output = args[3];
 
-			karto.map = karto.readData(lineInput, pointInput);
-			// TODO: console
+			karto.readData(lineInput, pointInput);
 
 			karto.simplify(maxEdgesToKeep);
 			karto.writeFile(output);
 		}
+
+		// TODO: comment out if console
+		karto.display();
 	}
 
 	private void writeFile(String output) {
-		// TODO Auto-generated method stub
-
+		try {
+			PrintWriter writer = new PrintWriter(output, "UTF-8");
+			for (int i = 1; i <= map.lines.size(); i++) {
+				writer.println(i + header + map.lines.get(i - 1).output()
+						+ footer);
+			}
+			writer.close();
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void simplify(int maxEdgesToKeep) {
@@ -67,20 +91,11 @@ public class KartoTest implements KeyListener {
 
 	// einlesen und display
 	public KartoTest() {
-
-		String data = "algokarto/";// "testdaten2/";
-		int ind = 4;
-		// map = readData(data + "iceland", data + "emptypoints");
-		map = readData(data + "lines_out"+ind+".txt", data + "points_out"+ind+".txt");
-		//1: New Hampshire
-		//2: Massachusetts
-		//3: Paper combine test
-		//4: Iceland
 	}
 
 	// einlesen
-	public MapData readData(String lineFile, String pointsFile) {
-		MapData map = new MapData();
+	public void readData(String lineFile, String pointsFile) {
+		map = new MapData();
 		String lines_out = null;
 		try {
 			lines_out = new String(Files.readAllBytes(Paths.get(lineFile)));
@@ -129,8 +144,6 @@ public class KartoTest implements KeyListener {
 						.doubleValue()));
 			}
 		}
-
-		return map;
 	}
 
 	private List<GMLObject> updateBends() {

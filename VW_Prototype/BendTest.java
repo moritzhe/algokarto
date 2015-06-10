@@ -13,7 +13,31 @@ public class BendTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		WM wm = new WM();
+		// *--*.*--*
+		// ...|.|
+		// *--*.*--*
+		// |.......|
+		// *-------*
+		line = new Line();
+		line.add(new Point(0, 0));
+		line.add(new Point(5, 0));
+		line.add(new Point(5, 5));
+		line.add(new Point(0, 5));
+		line.add(new Point(0, 10));
+		line.add(new Point(11, 10));
+		line.add(new Point(11, 5));
+		line.add(new Point(6, 5));
+		line.add(new Point(6, 0));
+		line.add(new Point(11, 0));
+
+		bends = new ArrayList<Bend>();
+		bends.addAll(line.findBends());
+	}
+
+	@Test
+	public void testFindBends() {
+		Line line;
+		List<Bend> bends;
 
 		// *--*.*--*
 		// ...|.|
@@ -34,6 +58,20 @@ public class BendTest {
 
 		bends = new ArrayList<Bend>();
 		bends.addAll(line.findBends());
+
+		// Found all the bends
+		assertEquals(3, bends.size());
+
+		// Alternating positivity
+		assertEquals(bends.get(0).isPositive(), bends.get(2).isPositive());
+		assertNotEquals(bends.get(0).isPositive(), bends.get(1).isPositive());
+
+		String[] points = { "[0.0,0.0, 5.0,0.0, 5.0,5.0, 0.0,5.0]",
+				"[5.0,5.0, 0.0,5.0, 0.0,10.0, 11.0,10.0, 11.0,5.0, 6.0,5.0]",
+				"[11.0,5.0, 6.0,5.0, 6.0,0.0, 11.0,0.0]" };
+		for (int i = 0; i < bends.size(); i++) {
+			assertEquals(points[i], bends.get(i).toString());
+		}
 	}
 
 	@Test
@@ -136,10 +174,9 @@ public class BendTest {
 
 	@Test
 	public void testToString() {
-		String[] points = {
-				"[Point [x=0.0, y=0.0], Point [x=5.0, y=0.0], Point [x=5.0, y=5.0], Point [x=0.0, y=5.0]]",
-				"[Point [x=5.0, y=5.0], Point [x=0.0, y=5.0], Point [x=0.0, y=10.0], Point [x=11.0, y=10.0], Point [x=11.0, y=5.0], Point [x=6.0, y=5.0]]",
-				"[Point [x=11.0, y=5.0], Point [x=6.0, y=5.0], Point [x=6.0, y=0.0], Point [x=11.0, y=0.0]]" };
+		String[] points = { "[0.0,0.0, 5.0,0.0, 5.0,5.0, 0.0,5.0]",
+				"[5.0,5.0, 0.0,5.0, 0.0,10.0, 11.0,10.0, 11.0,5.0, 6.0,5.0]",
+				"[11.0,5.0, 6.0,5.0, 6.0,0.0, 11.0,0.0]" };
 		for (int i = 0; i < bends.size(); i++) {
 			assertEquals(points[i], bends.get(i).toString());
 		}

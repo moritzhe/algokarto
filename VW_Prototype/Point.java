@@ -15,30 +15,30 @@ public class Point extends Point2D.Double implements GMLObject {
 	private double transActPositionY;
 	private Map<Line, Integer> transActLinePositions;
 	private boolean transActDeleted;
-	
-	public void beginOfTransaction(){
+
+	public void beginOfTransaction() {
 		transActPositionX = x;
 		transActPositionY = y;
 		transActDeleted = false;
 		transActLinePositions.clear();
-		for (Line line: lines){
+		for (Line line : lines) {
 			transActLinePositions.put(line, line.points.indexOf(this));
 		}
 	}
-	
-	public void rollbackTransaction(){
+
+	public void rollbackTransaction() {
 		setPosition(transActPositionX, transActPositionY);
 		System.out.println("Deleted:" + transActDeleted);
-		if (transActDeleted){
-			for (Line line: lines){
+		if (transActDeleted) {
+			for (Line line : lines) {
 				line.points.add(transActLinePositions.get(line), this);
 				line.update();
 			}
 		}
 		commitTransaction();
 	}
-	
-	public void commitTransaction(){
+
+	public void commitTransaction() {
 		transActLinePositions.clear();
 	}
 
@@ -69,19 +69,20 @@ public class Point extends Point2D.Double implements GMLObject {
 
 	@Override
 	public String toString() {
-		return "Point [x=" + getX() + ", y=" + getY() + "]";
+		return getX() + "," + getY();
+		// return "Point [x=" + getX() + ", y=" + getY() + "]";
 	}
 
 	@Override
 	public Rectangle getBounds() {
-		return new Rectangle((int)x,(int)y,0,0);
+		return new Rectangle((int) x, (int) y, 0, 0);
 	}
 
 	@Override
 	public void draw(Graphics2D g) {
 		drawWithColor(g, Color.RED);
 	}
-	
+
 	@Override
 	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();

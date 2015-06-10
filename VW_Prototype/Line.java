@@ -1,4 +1,3 @@
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -6,7 +5,7 @@ import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Line implements GMLObject{
+public class Line implements GMLObject {
 	protected List<Point> points;
 	private double length = -1;
 	private Path2D.Double path;
@@ -16,8 +15,8 @@ public class Line implements GMLObject{
 		points = new ArrayList<Point>();
 		path = new Path2D.Double();
 	}
-	
-	public void setColor (Color c){
+
+	public void setColor(Color c) {
 		color = c;
 	}
 
@@ -49,15 +48,15 @@ public class Line implements GMLObject{
 		points.remove(p);
 		update();
 	}
-	
+
 	protected List<Bend> findBends() {
 		List<Bend> bends = new ArrayList<Bend>();
 		if (this.size() < 3) {
 			bends.add(new Bend(this));
 			return bends;
 		}
-		Bend bend = new Bend(this.get(0), this.get(1), isPositive(
-				this.get(0), this.get(1), this.get(2)), this);
+		Bend bend = new Bend(this.get(0), this.get(1), isPositive(this.get(0),
+				this.get(1), this.get(2)), this);
 		for (int i = 2; i < this.size() - 1; i++) {
 			boolean pos = isPositive(this.get(i - 1), this.get(i),
 					this.get(i + 1));
@@ -92,15 +91,12 @@ public class Line implements GMLObject{
 		}
 
 		path = new Path2D.Double();
-		if (points.size() == 0) return;
+		if (points.size() == 0)
+			return;
 		path.moveTo(points.get(0).x, points.get(0).y);
 		for (int i = 1; i < points.size(); i++) {
 			path.lineTo(points.get(i).x, points.get(i).y);
 		}
-	}
-
-	public void remove(int i) {
-		remove(points.get(i));
 	}
 
 	public String toString() {
@@ -111,21 +107,21 @@ public class Line implements GMLObject{
 		// Baseline-Laenge
 		return points.get(0).distance(points.get(points.size() - 1));
 	}
-	
+
 	public double getDistanceBetween(Point a, Point b) {
 		int aIdx = points.indexOf(a);
 		int bIdx = points.indexOf(b);
-		if (aIdx == -1 || bIdx == -1){
+		if (aIdx == -1 || bIdx == -1) {
 			return -1;
 		}
-		if (aIdx > bIdx){
+		if (aIdx > bIdx) {
 			int tmp = bIdx;
 			bIdx = aIdx;
 			aIdx = tmp;
 		}
 		double dist = 0.0;
-		for (int i = aIdx; i < bIdx; ++i){
-			dist += points.get(i).distance(points.get(i+1));
+		for (int i = aIdx; i < bIdx; ++i) {
+			dist += points.get(i).distance(points.get(i + 1));
 		}
 		return dist;
 	}
@@ -139,12 +135,20 @@ public class Line implements GMLObject{
 	public void draw(Graphics2D g) {
 		drawWithColor(g, color);
 	}
-	
+
 	@Override
 	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();
 		g.setColor(color);
 		g.draw(path);
 		g.setColor(c);
+	}
+
+	public String output() {
+		String str = "";
+		for (int i = 0; i < points.size(); i++) {
+			str += points.get(i) + " ";
+		}
+		return str.trim();
 	}
 }
