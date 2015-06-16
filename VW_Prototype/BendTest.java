@@ -75,6 +75,65 @@ public class BendTest {
 	}
 
 	@Test
+	public void testSelfIntersection() {
+		// *--*.*--*
+		// ...|.|
+		// *--*.*--*
+		// |.......|
+		// *-------*
+		Line line = new Line();
+		line.add(new Point(0, 0));
+		line.add(new Point(5, 0));
+		line.add(new Point(5, 5));
+		line.add(new Point(0, 5));
+		line.add(new Point(0, 10));
+		line.add(new Point(11, 10));
+		line.add(new Point(11, 5));
+		line.add(new Point(6, 5));
+		line.add(new Point(6, 0));
+		line.add(new Point(11, 0));
+
+		List<Bend> bends = new ArrayList<Bend>();
+		bends.addAll(line.findBends());
+
+		assertFalse(line.lineSelfIntersects());
+		for (int i = 0; i < bends.size(); i++) {
+			assertFalse(bends.get(i).lineSelfIntersects());
+		}
+
+		// intersect at point
+		line.get(1).x = 6;
+		assertTrue(line.lineSelfIntersects());
+		// intersect on segment
+		line.get(1).y = 1;
+		assertTrue(line.lineSelfIntersects());
+		// intersect across segment
+		line.get(1).y = 2;
+		assertTrue(line.lineSelfIntersects());
+		// intersect with neighbor
+		line.get(1).x = 2;
+		line.get(1).y = 5;
+		assertTrue(line.lineSelfIntersects());
+		// intersect with neighbor
+		line.get(1).x = -1;
+		assertTrue(line.lineSelfIntersects());
+		// weird don't intersect with neighbor
+		line.get(1).x = 5.5;
+		assertFalse(line.lineSelfIntersects());
+		
+		// reset 1
+		line.get(1).x = 5;
+		line.get(1).y = 0;
+		// divide by zero intersect with neighbor
+		line.get(2).x = 0;
+		line.get(2).y = 6;
+		assertTrue(line.lineSelfIntersects());
+		// divide by zero non-intersect with neighbor
+		line.get(2).y = 4;
+		assertFalse(line.lineSelfIntersects());
+	}
+
+	@Test
 	public void testUpdate() {
 		fail("Not yet implemented");
 	}

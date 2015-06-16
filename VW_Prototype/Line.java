@@ -208,8 +208,7 @@ public class Line implements GMLObject {
 	}
 
 	/**
-	 * True if line segments intersect, but false if segments are equal or do
-	 * not intersect
+	 * True if line segments intersect
 	 * 
 	 * @param pointA1
 	 * @param pointA2
@@ -219,11 +218,6 @@ public class Line implements GMLObject {
 	 */
 	public static boolean lineSegmentsIntersect(Point pointA1, Point pointA2,
 			Point pointB1, Point pointB2) {
-		// if segments are actually equal
-		if ((pointA1.equals(pointB1) && pointA2.equals(pointB2))
-				|| (pointA1.equals(pointB2) && pointA2.equals(pointB1)))
-			return false;
-		// else
 		return Line2D.linesIntersect(pointA1.x, pointA1.y, pointA2.x,
 				pointA2.y, pointB1.x, pointB1.y, pointB2.x, pointB2.y);
 	}
@@ -242,8 +236,14 @@ public class Line implements GMLObject {
 			double s1 = (e.y - p1.y) / (e.x - p1.x), s2 = (e.y - p2.y)
 					/ (e.x - p2.x);
 			// if same slope and same side of point e, segments overlap
-			if (s1 == s2 && (((e.y > p1.y) == (e.y > p2.y)) || //
-					((e.x > p1.x) == (e.x > p2.x))))
+			if (s1 == s2 && ( // same slope AND
+					// both above/below and left/right
+					(((e.y > p1.y) == (e.y > p2.y)) && ((e.x > p1.x) == (e.x > p2.x))) //
+							// or identical y and same x direction
+							|| (e.y == p1.y && ((e.x > p1.x) == (e.x > p2.x))) //
+					// or identical x and same y direction
+					|| (e.x == p1.x && ((e.y > p1.y) == (e.y > p2.y))) //
+					))
 				return true;
 		}
 		return false;
