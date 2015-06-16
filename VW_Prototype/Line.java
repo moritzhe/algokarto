@@ -11,10 +11,19 @@ public class Line implements GMLObject {
 	private double length = -1;
 	private Path2D.Double path;
 	private Color color = Color.BLACK;
+	private Point start, end;
+	private Line complement;
 
 	public Line() {
 		points = new ArrayList<Point>();
 		path = new Path2D.Double();
+	}
+	
+	public Line(List<Point> points) {
+		this();
+		for (Point p: points){
+			add (p);
+		}
 	}
 
 	public void setColor(Color c) {
@@ -312,5 +321,14 @@ public class Line implements GMLObject {
 				return true;
 		}
 		return false;
+	}
+
+	public void recordEndPoints() {
+		start = new Point(get(0).x, get(0).y);
+		end = new Point(get(size() - 1).x, get(size() - 1).y);
+	}
+
+	public void setComplement(Line comp) {
+		complement = comp;
 	}
 }
