@@ -20,33 +20,39 @@ public class KartoTest implements KeyListener {
 	private String footer = " </gml:coordinates></gml:LineString>";
 
 	public static void main(String[] args) {
-		KartoTest karto = new KartoTest();
 
-		// 1: New Hampshire
-		// 2: Massachusetts
-		// 3: Paper combine test
-		// 4: Iceland
-		// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
-		int id = 5;
-		args = new String[] { "300", "algokarto/lines_out" + id + ".txt",
-				"algokarto/points_out" + id + ".txt", "results.txt" };
+		// if args not valid, just testing
+		boolean DEBUG = (args == null || args.length < 4);
 
-		if (args == null || args.length < 4) {
-			karto.display();
-		} else {
-			int maxEdgesToKeep = Integer.parseInt(args[0]);
-			String lineInput = args[1];
-			String pointInput = args[2];
-			String output = args[3];
+		// if testing, make own args array
+		if (DEBUG) {
 
-			karto.readData(lineInput, pointInput);
-
-			karto.simplify(maxEdgesToKeep);
-			karto.writeFile(output);
+			// 1: New Hampshire
+			// 2: Massachusetts
+			// 3: Paper combine test
+			// 4: Iceland
+			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
+			int id = 5;
+			args = new String[] { "300", "algokarto/lines_out" + id + ".txt",
+					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}
 
-		// TODO: comment out if console
-		karto.display();
+		// parse args
+		int maxEdgesToKeep = Integer.parseInt(args[0]);
+		String lineInput = args[1];
+		String pointInput = args[2];
+		String output = args[3];
+
+		// do work
+		KartoTest karto = new KartoTest();
+		karto.readData(lineInput, pointInput);
+		karto.simplify(maxEdgesToKeep);
+		karto.writeFile(output);
+
+		// if testing, show in panel
+		if (DEBUG) {
+			karto.display();
+		}
 	}
 
 	private void writeFile(String output) {
@@ -87,10 +93,6 @@ public class KartoTest implements KeyListener {
 			vwAtEnd++;
 		}
 		System.out.println(countWM + " " + countVW + " " + vwAtEnd);
-	}
-
-	// einlesen und display
-	public KartoTest() {
 	}
 
 	// einlesen

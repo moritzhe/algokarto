@@ -11,6 +11,7 @@ public class Line implements GMLObject {
 	private double length = -1;
 	private Path2D.Double path;
 	private Color color = Color.BLACK;
+	private Point start, end;
 
 	public Line() {
 		points = new ArrayList<Point>();
@@ -312,5 +313,10 @@ public class Line implements GMLObject {
 				return true;
 		}
 		return false;
+	}
+
+	public void recordEndPoints() {
+		start = new Point(get(0).x, get(0).y);
+		end = new Point(get(size() - 1).x, get(size() - 1).y);
 	}
 }
