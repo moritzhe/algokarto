@@ -142,10 +142,6 @@ public class Bend extends Line {
 
 	}
 
-	// TODO: selbst und fremd schnitte
-
-	// TODO: polygon contains point
-
 	public boolean exaggerate() {
 		return exaggerate(null);
 	}
@@ -155,9 +151,12 @@ public class Bend extends Line {
 		if (points.size() == 0)
 			return false;
 
-		// TODO: if exaggeration would change point topology, do nothing
-
-		// TODO: if exaggeration would cause self-intersection, do nothing
+		// Original Points to restore
+		List<Point> originalPoints = new ArrayList<Point>();
+		for (Point p : parentLine.points) {
+			p.beginOfTransaction();
+			originalPoints.add(p);
+		}
 
 		final double exaggerationFactor = 0.5;
 		final double baseLineLength = getBaseLength();
@@ -189,6 +188,13 @@ public class Bend extends Line {
 			p.setPosition(p.x + xOfsset, p.y + yOffset);
 		}
 
+		if (!parentLine.stillTopologicallyCorrect()) {
+			for (Point p : originalPoints) {
+				p.rollbackTransaction();
+			}
+			return false;
+		}
+
 		return true;
 	}
 
@@ -200,11 +206,11 @@ public class Bend extends Line {
 	 * @param bendC
 	 *            Next next
 	 */
-	
-	public boolean combine(Bend bendB, Bend bendC){
+
+	public boolean combine(Bend bendB, Bend bendC) {
 		return combine(bendB, bendC, null);
 	}
-	
+
 	public boolean combine(Bend bendB, Bend bendC, MapData mapToCheck) {
 		// Bends muessen benachbart sein
 		if (points.get(points.size() - 1) != bendB.points.get(1)) {
@@ -230,18 +236,18 @@ public class Bend extends Line {
 			p.beginOfTransaction();
 			originalPoints.add(p);
 		}
-		
+
 		Map<Point, Boolean> pointsInBend = new HashMap<Point, Boolean>();
-		
-		if (mapToCheck != null){
-			for (Point p : mapToCheck.pois){
-				boolean inside = isPointInBendArea(p) || bendC.isPointInBendArea(p);
-				if (inside){
+
+		if (mapToCheck != null) {
+			for (Point p : mapToCheck.pois) {
+				boolean inside = isPointInBendArea(p)
+						|| bendC.isPointInBendArea(p);
+				if (inside) {
 					pointsInBend.put(p, inside);
 				}
 			}
 		}
-		
 
 		// Vorgeschlagener Wert vom Paper
 		final double combinedPeakFactor = 1.2;
@@ -328,8 +334,8 @@ public class Bend extends Line {
 
 		A.loesch();
 		C.loesch();
-		
-		//Punkte an neue Positionen bewegen
+
+		// Punkte an neue Positionen bewegen
 		for (Point p : points) {
 			double movementFactor = movementFactors.get(p).doubleValue();
 			p.setPosition(p.x + ADsx * movementFactor, p.y + ADsy
@@ -341,57 +347,55 @@ public class Bend extends Line {
 			p.setPosition(p.x + CDsx * movementFactor, p.y + CDsy
 					* movementFactor);
 		}
-		
-		
-		//Ueberpruefen, ob die neue Bend valide ist
+
+		// Ueberpruefen, ob die neue Bend valide ist
 		boolean invalid = false;
-		
-		//Zum testen Punkte von BendB und BendC in diese Bend aufnehmen
-		for (Point pointInB : bendB.points){
-			if (!points.contains(pointInB)){
+
+		// Zum testen Punkte von BendB und BendC in diese Bend aufnehmen
+		for (Point pointInB : bendB.points) {
+			if (!points.contains(pointInB)) {
 				add(pointInB);
 			}
 		}
-		
-		for (Point pointInC : bendC.points){
-			if (!points.contains(pointInC)){
+
+		for (Point pointInC : bendC.points) {
+			if (!points.contains(pointInC)) {
 				add(pointInC);
 			}
 		}
-		
-		
-		//Gegen POIs pruefen
-		//TODO:: besseren Check aus exeggerate uebernehmen
-		if (mapToCheck != null){
-			for (Point p : mapToCheck.pois){
+
+		// Gegen POIs pruefen
+		// TODO:: besseren Check aus exeggerate uebernehmen
+		// TODO: use line.stillTopologicallyCorrect()
+		if (mapToCheck != null) {
+			for (Point p : mapToCheck.pois) {
 				boolean inside = isPointInBendArea(p);
-				if (inside != pointsInBend.containsKey(p)){
+				if (inside != pointsInBend.containsKey(p)) {
 					invalid = true;
 					break;
 				}
 			}
 		}
-		
-		//Auf Schnitte pruefen
-		if (mapToCheck != null && !invalid){
-			for (Line line : mapToCheck.lines){
-				if (line.lineIntersects(parentLine)){
+
+		// Auf Schnitte pruefen
+		if (mapToCheck != null && !invalid) {
+			for (Line line : mapToCheck.lines) {
+				if (line.lineIntersects(parentLine)) {
 					invalid = true;
 					break;
 				}
 			}
 		}
-		
-		if (invalid){
-			//Revert changes
-			for (Point p: originalPoints){
+
+		if (invalid) {
+			// Revert changes
+			for (Point p : originalPoints) {
 				p.rollbackTransaction();
 			}
 			return false;
-		}
-		else{
-			//Save changes
-			for (Point p: originalPoints){
+		} else {
+			// Save changes
+			for (Point p : originalPoints) {
 				p.commitTransaction();
 			}
 			return true;
