@@ -4,30 +4,33 @@ import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Line implements GMLObject {
+
 	protected List<Point> points;
 	private double length = -1;
 	private Path2D.Double path;
 	private Color color = Color.BLACK;
 	private Point start, end;
 	private Line complement;
+	private Set<Point> poisInBounds;
+	private MapData map;
+
+	private List<Point> totalPOIS;
 
 	public Line() {
 		points = new ArrayList<Point>();
 		path = new Path2D.Double();
 	}
-	
+
 	public Line(List<Point> points) {
 		this();
-		for (Point p: points){
-			add (p);
+		for (Point p : points) {
+			add(p);
 		}
-	}
-
-	public void setColor(Color c) {
-		color = c;
 	}
 
 	public void add(Point p) {
@@ -42,21 +45,17 @@ public class Line implements GMLObject {
 		}
 	}
 
-	public int size() {
-		return points.size();
+	@Override
+	public void draw(Graphics2D g) {
+		drawWithColor(g, color);
 	}
 
-	public double getLength() {
-		return length;
-	}
-
-	public Point get(int i) {
-		return points.get(i);
-	}
-
-	public void remove(Point p) {
-		points.remove(p);
-		update();
+	@Override
+	public void drawWithColor(Graphics2D g, Color color) {
+		Color c = g.getColor();
+		g.setColor(color);
+		g.draw(path);
+		g.setColor(c);
 	}
 
 	protected List<Bend> findBends() {
@@ -82,40 +81,18 @@ public class Line implements GMLObject {
 		return bends;
 	}
 
-	/**
-	 * 
-	 * @param p1
-	 *            anfangspunkt
-	 * @param p3
-	 *            endpunkt
-	 * @return
-	 */
-	protected boolean isPositive(Point p1, Point p2, Point p3) {
-		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x) > 0;
-	}
-
-	public void update() {
-		length = 0;
-		for (int i = 1; i < points.size(); i++) {
-			length += points.get(i - 1).distance(points.get(i));
-		}
-
-		path = new Path2D.Double();
-		if (points.size() == 0)
-			return;
-		path.moveTo(points.get(0).x, points.get(0).y);
-		for (int i = 1; i < points.size(); i++) {
-			path.lineTo(points.get(i).x, points.get(i).y);
-		}
-	}
-
-	public String toString() {
-		return points.toString();
+	public Point get(int i) {
+		return points.get(i);
 	}
 
 	public double getBaseLength() {
 		// Baseline-Laenge
 		return points.get(0).distance(points.get(points.size() - 1));
+	}
+
+	@Override
+	public Rectangle getBounds() {
+		return path.getBounds();
 	}
 
 	public double getDistanceBetween(Point a, Point b) {
@@ -136,148 +113,98 @@ public class Line implements GMLObject {
 		return dist;
 	}
 
-	@Override
-	public Rectangle getBounds() {
-		return path.getBounds();
+	public double getLength() {
+		return length;
 	}
 
-	@Override
-	public void draw(Graphics2D g) {
-		drawWithColor(g, color);
+	public boolean isPointInBendArea(Point p) {
+		return isPointInBendArea(p, points);
 	}
 
-	@Override
-	public void drawWithColor(Graphics2D g, Color color) {
-		Color c = g.getColor();
-		g.setColor(color);
-		g.draw(path);
-		g.setColor(c);
-	}
+	public static boolean isPointInBendArea(Point p, List<Point> points) {
 
-	public String output() {
-		String str = "";
-		for (int i = 0; i < points.size(); i++) {
-			str += points.get(i) + " ";
-		}
-		return str.trim();
-	}
-
-	public List<Point> getPointsInLowerBounds() {
-		List<Point> bp = new ArrayList<Point>();
-		if (size() <= 2)
-			return bp;
-		Rectangle r = getBounds();
-		Point start = points.get(0), end = points.get(size() - 1);
-
-		// consider start point extended beyond bounding box
-		List<Point> options = new ArrayList<Point>();
-		options.add(new Point(r.x - 10, start.y));
-		options.add(new Point(start.x, r.y - 10));
-		options.add(new Point(r.x + r.width + 10, start.y));
-		options.add(new Point(start.x, r.y + r.height + 10));
-		Point startOut = null;
-
-		for (int i = 0; i < 4; i++) {
-			boolean val = lineSegmentIntersectsInRange(start, options.get(i),
-					1, size() - 1);
-			if (!val) {
-				startOut = options.get(i);
-				break;
-			}
-		}
-
-		if (startOut == null) {
-			// TODO: fix this ugly case where the line is somehow looped around
-			// the start point.
-		}
-
-		// now extend the end point beyond the bounding box
-		options = new ArrayList<Point>();
-		options.add(new Point(r.x - 10, end.y));
-		options.add(new Point(end.x, r.y - 10));
-		options.add(new Point(r.x + r.width + 10, end.y));
-		options.add(new Point(end.x, r.y + r.height + 10));
-		Point endOut = null;
-
-		for (int i = 0; i < 4; i++) {
-			boolean val = lineSegmentIntersectsInRange(end, options.get(i), 0,
-					size() - 1);
-			if (!val) {
-				endOut = options.get(i);
-				break;
-			}
-		}
-
-		if (endOut == null) {
-			// TODO: fix this ugly case where the line is somehow looped around
-			// the end point.
-		}
-
-		Line extension = new Line();
-		for (Point p : points) {
-			extension.add(p);
-		}
-		extension.add(endOut);
-		Point cur = endOut;
-
-		// while you still need to go around a corner for it to turn out well
-		while (!(startOut.x == cur.x && (startOut.x < r.x || startOut.x > r.x
-				+ r.width))
-				|| (startOut.y == cur.y && (startOut.y < r.y || startOut.y > r.y
-						+ r.height))) {
-			// if at extreme x, move to top or bottom corner of that side
-			// closer to target
-			if (cur.x < r.x || cur.x > r.x + r.width) {
-				if (startOut.y < r.y + r.height / 2.0) {
-					Point p = new Point(cur.x, r.y - 10);
-					if (!p.equals(cur))
-						extension.add(p);
-				} else {
-					Point p = new Point(cur.x, r.y + r.height + 10);
-					if (!p.equals(cur))
-						extension.add(p);
+		int numPoints = points.size();
+		int i = 0;
+		int j = numPoints - 1;
+		int numberOfIntersections = 0;
+		for (; i < numPoints; i++) {
+			Point pointI = points.get(i);
+			Point pointJ = points.get(j);
+			if (pointI.y < p.y && pointJ.y >= p.y || pointJ.y < p.y
+					&& pointI.y >= p.y) {
+				if (pointI.x + (p.y - pointI.y) / (pointJ.y - pointI.y)
+						* (pointJ.x - pointI.x) < p.x) {
+					numberOfIntersections++;
 				}
 			}
-
-			// still need a corner?
-			if ((startOut.x == cur.x && (startOut.x < r.x || startOut.x > r.x
-					+ r.width))
-					|| (startOut.y == cur.y && (startOut.y < r.y || startOut.y > r.y
-							+ r.height))) {
-				break;
-			}
-
-			// if at extreme y, move to left or right corner of that side
-			// closer to target
-			if (cur.y < r.y || cur.y > r.y + r.height) {
-				if (startOut.x < r.x + r.width / 2.0) {
-					Point p = new Point(r.x - 10, cur.y);
-					if (!p.equals(cur))
-						extension.add(p);
-				} else {
-					Point p = new Point(r.x + r.width + 10, cur.y);
-					if (!p.equals(cur))
-						extension.add(p);
-				}
-			}
+			j = i;
 		}
-		extension.add(startOut);
 
-		// In effect, add pluses outside bounding box to
-		// produce extension of line to ring with no
-		// self-intersections
-		// __________________
-		// | . . * . . . *
-		// | . * . * * * . *
-		// +| * . . . . . . *
-		// +| . . . . . * *
-		// +| --------- + ----
-		// ++++++++++++++
+		return (numberOfIntersections % 2) == 1;
+	}
 
-		// TODO: figure out which points are in that ring
-		// return extension, too?
+	/**
+	 * 
+	 * @param p1
+	 *            anfangspunkt
+	 * @param p3
+	 *            endpunkt
+	 * @return
+	 */
+	protected boolean isPositive(Point p1, Point p2, Point p3) {
+		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x) > 0;
+	}
 
-		return null;
+	/**
+	 * True if elements of line are equal (doesn't check for reversed order)
+	 */
+	@Override
+	public boolean equals(Object line) {
+		if (!(line instanceof Line))
+			return false;
+		Line l2 = (Line) line;
+		if (l2.size() != size())
+			return false;
+		for (int i = 0; i < size(); i++) {
+			if (!get(i).equals(l2.get(i)))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Checks whether this line intersects with the given line. If the lines are
+	 * equal, checks if the given line has a self-intersection.
+	 * 
+	 * @param line
+	 * @return
+	 */
+	public boolean lineIntersects(Line line) {
+		if (line.equals(this)) {
+			return lineSelfIntersects();
+		}
+		for (int i = 0; i < line.points.size() - 1; ++i) {
+			if (lineSegmentIntersects(line.points.get(i),
+					line.points.get(i + 1)))
+				return true;
+		}
+		return false;
+	}
+
+	public boolean lineSegmentIntersects(Point a, Point b) {
+		return lineSegmentIntersectsInRange(a, b, 0, size());
+	}
+
+	public boolean lineSegmentIntersectsInRange(Point a, Point b, int start,
+			int length) {
+		if (length <= 1) {
+			return false;
+		}
+		for (int i = start; i < start + length - 1; ++i) {
+			if (lineSegmentsIntersect(points.get(i), points.get(i + 1), a, b))
+				return true;
+		}
+		return false;
 	}
 
 	/**
@@ -293,34 +220,41 @@ public class Line implements GMLObject {
 	public static boolean lineSegmentsIntersect(Point pointA1, Point pointA2,
 			Point pointB1, Point pointB2) {
 		// if segments are actually equal
-		if ((pointA1.equals(pointB1) || pointA2.equals(pointB2))
-				|| (pointA1.equals(pointB2) || pointA2.equals(pointB1)))
+		if ((pointA1.equals(pointB1) && pointA2.equals(pointB2))
+				|| (pointA1.equals(pointB2) && pointA2.equals(pointB1)))
 			return false;
 		// else
 		return Line2D.linesIntersect(pointA1.x, pointA1.y, pointA2.x,
 				pointA2.y, pointB1.x, pointB1.y, pointB2.x, pointB2.y);
 	}
 
-	public boolean lineSegmentIntersects(Point a, Point b) {
-		return lineSegmentIntersectsInRange(a, b, 0, size());
-	}
+	public boolean lineSelfIntersects() {
+		for (int i = 0; i < points.size() - 2; ++i) {
+			// does segment intersect with non-neighboring segments
+			// that come after it?
+			if (lineSegmentIntersectsInRange(points.get(i), points.get(i + 1),
+					i + 2, size() - i - 2))
+				return true;
 
-	public boolean lineSegmentIntersectsInRange(Point a, Point b, int start,
-			int length) {
-		for (int i = start; i < start + length - 1; ++i) {
-			if (lineSegmentsIntersect(points.get(i), points.get(i + 1), a, b))
+			// now check whether it intersects with segment + 1:
+			Point p1 = points.get(i), p2 = points.get(i + 2);
+			Point e = points.get(i + 1);
+			double s1 = (e.y - p1.y) / (e.x - p1.x), s2 = (e.y - p2.y)
+					/ (e.x - p2.x);
+			// if same slope and same side of point e, segments overlap
+			if (s1 == s2 && (((e.y > p1.y) == (e.y > p2.y)) || //
+					((e.x > p1.x) == (e.x > p2.x))))
 				return true;
 		}
 		return false;
 	}
 
-	public boolean lineIntersects(Line line) {
-		for (int i = 0; i < line.points.size() - 1; ++i) {
-			if (lineSegmentIntersects(line.points.get(i),
-					line.points.get(i + 1)))
-				return true;
+	public String output() {
+		String str = "";
+		for (int i = 0; i < points.size(); i++) {
+			str += points.get(i) + " ";
 		}
-		return false;
+		return str.trim();
 	}
 
 	public void recordEndPoints() {
@@ -328,7 +262,78 @@ public class Line implements GMLObject {
 		end = new Point(get(size() - 1).x, get(size() - 1).y);
 	}
 
+	public void remove(Point p) {
+		points.remove(p);
+		p.loesch();
+		update();
+	}
+
+	public void setColor(Color c) {
+		color = c;
+	}
+
 	public void setComplement(Line comp) {
 		complement = comp;
+	}
+
+	public void setInitContains(List<Point> pois) {
+		totalPOIS = pois;
+		poisInBounds = topoPOIs();
+	}
+
+	public void setMapData(MapData map) {
+		this.map = map;
+	}
+
+	public int size() {
+		return points.size();
+	}
+
+	/**
+	 * Checks that line doesn't intersect with other lines, that points are on
+	 * the same side of it as at the beginning, and that the start and end
+	 * points haven't moved
+	 * 
+	 * @return
+	 */
+	public boolean stillTopologicallyCorrect() {
+		for (Line line : map.lines) {
+			if (lineIntersects(line))
+				return false;
+		}
+		return topoPOIs().equals(poisInBounds) && get(0).equals(start)
+				&& get(size() - 1).equals(end);
+	}
+
+	private Set<Point> topoPOIs() {
+		List<Point> list = new ArrayList<Point>();
+		list.addAll(points);
+		list.addAll(complement.points);
+		Set<Point> poisInBounds = new HashSet<Point>();
+		for (Point poi : totalPOIS) {
+			if (isPointInBendArea(poi, list)) {
+				poisInBounds.add(poi);
+			}
+		}
+		return poisInBounds;
+	}
+
+	public String toString() {
+		return points.toString();
+	}
+
+	public void update() {
+		length = 0;
+		for (int i = 1; i < points.size(); i++) {
+			length += points.get(i - 1).distance(points.get(i));
+		}
+
+		path = new Path2D.Double();
+		if (points.size() == 0)
+			return;
+		path.moveTo(points.get(0).x, points.get(0).y);
+		for (int i = 1; i < points.size(); i++) {
+			path.lineTo(points.get(i).x, points.get(i).y);
+		}
 	}
 }

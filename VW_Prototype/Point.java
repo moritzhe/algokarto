@@ -15,6 +15,7 @@ public class Point extends Point2D.Double implements GMLObject {
 	private double transActPositionY;
 	private Map<Line, Integer> transActLinePositions;
 	private boolean transActDeleted;
+	private boolean deleted;
 
 	public void beginOfTransaction() {
 		transActPositionX = x;
@@ -43,10 +44,14 @@ public class Point extends Point2D.Double implements GMLObject {
 	}
 
 	public void loesch() {
-		for (Line line : lines) {
-			line.remove(this);
+		// prevent stack-overflow from lines returning the call
+		if (!deleted) {
+			deleted = true;
+			for (Line line : lines) {
+				line.remove(this);
+			}
+			transActDeleted = true;
 		}
-		transActDeleted = true;
 	}
 
 	public void addToLine(Line l) {

@@ -19,49 +19,63 @@ public class MapData {
 	}
 
 	public boolean checkTopology(Line line) {
-
 		return false;
 	}
 
 	public void setFinal() {
-		List<Line> lines2 = new ArrayList<Line>();
 		for (Line line : lines) {
+			// so that we can later check they haven't moved
 			line.recordEndPoints();
 
-			// points and ancestors that we've seen
-			Map<Point, Line> prevL = new HashMap<Point, Line>();
-			Map<Point, Line> prevR = new HashMap<Point, Line>();
-			Queue<Point> ptsL = new ArrayDeque<Point>();
-			Queue<Point> ptsR = new ArrayDeque<Point>();
+			// a loop that should stay topologically correct
+			// and form a cycle with this line
+			setPath(line);
 
-			Point start = line.get(0), end = line.get(line.size() - 1);
+			line.setInitContains(pois);
 
-			// start searching from end of starting line
-			ptsL.add(end);
-			ptsR.add(start);
+			line.setMapData(this);
+		}
+	}
 
-			// so we'll know when we're done
-			prevL.put(end, line);
-			prevR.put(start, line);
+	private void setPath(Line line) {
+		// points and ancestors that we've seen
+		Map<Point, Line> prevL = new HashMap<Point, Line>();
+		Map<Point, Line> prevR = new HashMap<Point, Line>();
+		Queue<Point> ptsL = new ArrayDeque<Point>();
+		Queue<Point> ptsR = new ArrayDeque<Point>();
 
-			while (!ptsL.isEmpty() && !ptsR.isEmpty()) {
-				Point prevLEnd = ptsL.poll();
-				Point prevREnd = ptsR.poll();
+		Point start = line.get(0), end = line.get(line.size() - 1);
 
-				for (int i = 0; i < lines2.size(); i++) {
-					// current line to check against
-					Line check = lines2.get(i);
-					// if line adj, add OTHER endpoint to ptsL/R
-					Point endL = otherEnd(check, prevLEnd), endR = otherEnd(
-							check, prevREnd);
+		// special case:
+		if (start.equals(end)) {
+			line.setComplement(new Line());
+			return;
+		}
 
-					// if endLR != null, check for cycle
-					if (findCycle(check, endL, prevLEnd, prevL, prevR, ptsL)) {
-						setPath(endL, prevL, prevR, line);
-					} else if (findCycle(check, endR, prevREnd, prevR, prevL,
-							ptsR)) {
-						setPath(endL, prevL, prevR, line);
-					}
+		// start searching from end of starting line
+		ptsL.add(end);
+		ptsR.add(start);
+
+		// so we'll know when we're done
+		prevL.put(end, line);
+		prevR.put(start, line);
+
+		while (true) {
+			Point prevLEnd = ptsL.poll();
+			Point prevREnd = ptsR.poll();
+
+			for (Line check : lines) {
+				// if line to check is adj, find OTHER endpoint
+				Point endL = otherEnd(check, prevLEnd), endR = otherEnd(check,
+						prevREnd);
+
+				// if endLR != null, check for cycle
+				if (findCycle(check, endL, prevL, prevR, ptsL)) {
+					setPath(endL, prevL, prevR, line);
+					return;
+				} else if (findCycle(check, endR, prevR, prevL, ptsR)) {
+					setPath(endL, prevL, prevR, line);
+					return;
 				}
 			}
 		}
@@ -104,14 +118,13 @@ public class MapData {
 			}
 		}
 		complement.remove(complement.size() - 1);
-		
+
 		Line comp = new Line(complement);
 		line.setComplement(comp);
 	}
 
-	private boolean findCycle(Line check, Point end, Point prevEnd,
-			Map<Point, Line> thisPrev, Map<Point, Line> otherPrev,
-			Queue<Point> pts) {
+	private boolean findCycle(Line check, Point end, Map<Point, Line> thisPrev,
+			Map<Point, Line> otherPrev, Queue<Point> pts) {
 		// special case (line wasn't actually adjacent)
 		if (end == null)
 			return false;

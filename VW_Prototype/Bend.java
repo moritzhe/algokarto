@@ -158,7 +158,7 @@ public class Bend extends Line {
 			return false;
 
 		// TODO: if exaggeration would change point topology, do nothing
-		
+
 		// TODO: if exaggeration would cause self-intersection, do nothing
 
 		final double exaggerationFactor = 0.5;
@@ -380,28 +380,6 @@ public class Bend extends Line {
 		final double pi = Math.PI;
 		return (1.0 / Math.sqrt(2 * pi * sigma2))
 				* Math.exp(-(((x - my) * (x - my)) / (2 * sigma2)));
-	}
-
-	public boolean isPointInBendArea(Point p) {
-
-		int numPoints = points.size();
-		int i = 0;
-		int j = numPoints - 1;
-		int numberOfIntersections = 0;
-		for (; i < numPoints; i++) {
-			Point pointI = points.get(i);
-			Point pointJ = points.get(j);
-			if (pointI.y < p.y && pointJ.y >= p.y || pointJ.y < p.y
-					&& pointI.y >= p.y) {
-				if (pointI.x + (p.y - pointI.y) / (pointJ.y - pointI.y)
-						* (pointJ.x - pointI.x) < p.x) {
-					numberOfIntersections++;
-				}
-			}
-			j = i;
-		}
-
-		return (numberOfIntersections % 2) == 1;
 	}
 
 	public boolean lineIntersectsBaseLine(Line line) {
