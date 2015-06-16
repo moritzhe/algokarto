@@ -3,7 +3,7 @@ import java.util.List;
 
 public class WM {
 
-	//private MapData mapWithData, testMap;
+	// private MapData mapWithData, testMap;
 
 	/** In radians */
 	public static final double ISOLATED_THRESHOLD = Math.PI / 4;
@@ -44,11 +44,12 @@ public class WM {
 										ISOLATED_THRESHOLD,
 										RELATIVE_ISOLATED_THRESHOLD
 												* bend.getAvgCurve())) {
-							bend.exaggerate();// TODO: oder vielleicht
-												// line.exaggerate(bend)?
-							changeHappened = true;
-							countChanges[0] ++;
-							break;
+							changeHappened = bend.exaggerate();
+
+							if (changeHappened) {
+								countChanges[0]++;
+								break;
+							}
 						}
 
 						// COMBINE SIMILAR BENDS
@@ -57,7 +58,8 @@ public class WM {
 						// groesser als bend+1
 						if (i < bends.size() - 2
 								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
-								&& bend.getAdjustedSize() > bends.get(i + 1).getAdjustedSize()) {
+								&& bend.getAdjustedSize() > bends.get(i + 1)
+										.getAdjustedSize()) {
 							bend.combine(bends.get(i + 1), bends.get(i + 2));
 							changeHappened = true;
 							countChanges[1]++;
@@ -66,9 +68,12 @@ public class WM {
 
 						// ELIMINATE LOCAL MINIMAL BEND
 						// nicht erst, nicht letzt, und kleiner als Nachbaren
-						if (i > 0 && i < bends.size() - 1
-								&& bend.getAdjustedSize() < bends.get(i - 1).getAdjustedSize()
-								&& bend.getAdjustedSize() < bends.get(i + 1).getAdjustedSize()) {
+						if (i > 0
+								&& i < bends.size() - 1
+								&& bend.getAdjustedSize() < bends.get(i - 1)
+										.getAdjustedSize()
+								&& bend.getAdjustedSize() < bends.get(i + 1)
+										.getAdjustedSize()) {
 							bend.eliminate();
 							changeHappened = true;
 							countChanges[2]++;
@@ -78,8 +83,11 @@ public class WM {
 				}
 			}
 		} while (changeHappened);
-		System.out.println("Made "+countChanges[0]+" exaggerations,\n\t"+countChanges[1]+" combinations, and\n\t"+countChanges[2]+" eliminations");
-		System.out.println("There are now "+map.getSegments()+" segments left");
+		System.out.println("Made " + countChanges[0] + " exaggerations,\n\t"
+				+ countChanges[1] + " combinations, and\n\t" + countChanges[2]
+				+ " eliminations");
+		System.out.println("There are now " + map.getSegments()
+				+ " segments left");
 		System.out.println(userTolerance);
 		System.out.println();
 	}

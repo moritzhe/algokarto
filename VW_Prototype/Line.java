@@ -18,6 +18,7 @@ public class Line implements GMLObject {
 	private Line complement;
 	private Set<Point> poisInBounds;
 	private MapData map;
+	boolean pathInvalid = false;
 
 	private List<Point> totalPOIS;
 
@@ -38,10 +39,12 @@ public class Line implements GMLObject {
 		p.addToLine(this);
 		if (points.size() == 1) {
 			length = 0;
-			path.moveTo(p.x, p.y);
+			if (!pathInvalid)
+				path.moveTo(p.x, p.y);
 		} else {
 			length += p.distance(points.get(points.size() - 2));
-			path.lineTo(p.x, p.y);
+			if (!pathInvalid)
+				path.lineTo(p.x, p.y);
 		}
 	}
 
@@ -54,8 +57,21 @@ public class Line implements GMLObject {
 	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();
 		g.setColor(color);
+		if (pathInvalid) {
+			recalculatePath();
+		}
 		g.draw(path);
 		g.setColor(c);
+	}
+
+	private void recalculatePath() {
+		if (pathInvalid && size() >= 1) {
+			path.moveTo(get(0).x, get(0).y);
+			for (int i = 1; i < size(); i++) {
+				path.lineTo(get(i).x, get(i).y);
+			}
+		}
+		pathInvalid = false;
 	}
 
 	protected List<Bend> findBends() {
@@ -92,6 +108,8 @@ public class Line implements GMLObject {
 
 	@Override
 	public Rectangle getBounds() {
+		if (pathInvalid)
+			recalculatePath();
 		return path.getBounds();
 	}
 
@@ -114,6 +132,12 @@ public class Line implements GMLObject {
 	}
 
 	public double getLength() {
+		if (length == -1) {
+			length = 0;
+			for (int i = 0; i < size() - 2; i++) {
+				length += get(i).distance(get(i + 1));
+			}
+		}
 		return length;
 	}
 
@@ -174,7 +198,9 @@ public class Line implements GMLObject {
 
 	/**
 	 * Checks whether this line intersects with the given line. If the lines are
-	 * equal, checks if the given line has a self-intersection.
+	 * equal, checks if the given line has a self-intersection. <br>
+	 * <br>
+	 * If intersect only at end point, returns false.
 	 * 
 	 * @param line
 	 * @return
@@ -183,11 +209,39 @@ public class Line implements GMLObject {
 		if (line.equals(this)) {
 			return lineSelfIntersects();
 		}
+		// check middle segments
 		for (int i = 0; i < line.points.size() - 1; ++i) {
 			if (lineSegmentIntersects(line.points.get(i),
-					line.points.get(i + 1)))
-				return true;
+					line.points.get(i + 1))) {
+				if (i == 0) {
+					Point mid = line.get(0);
+					if (mid.equals(start)) {
+						if (this.neighborSegmentIntersect(line.points.get(1),
+								mid, get(1)))
+							return true;
+					} else if (mid.equals(end)) {
+						if (this.neighborSegmentIntersect(line.points.get(1),
+								mid, get(size() - 2)))
+							return true;
+					} else
+						return true;
+				} else if (i == line.points.size() - 2) {
+					Point mid = line.get(i + 1);
+					if (mid.equals(start)) {
+						if (this.neighborSegmentIntersect(line.points.get(i),
+								mid, get(1)))
+							return true;
+					} else if (line.points.get(0).equals(end)) {
+						if (this.neighborSegmentIntersect(line.points.get(i),
+								mid, get(size() - 2)))
+							return true;
+					} else
+						return true;
+				} else
+					return true;
+			}
 		}
+
 		return false;
 	}
 
@@ -231,21 +285,26 @@ public class Line implements GMLObject {
 				return true;
 
 			// now check whether it intersects with segment + 1:
-			Point p1 = points.get(i), p2 = points.get(i + 2);
-			Point e = points.get(i + 1);
-			double s1 = (e.y - p1.y) / (e.x - p1.x), s2 = (e.y - p2.y)
-					/ (e.x - p2.x);
-			// if same slope and same side of point e, segments overlap
-			if (s1 == s2 && ( // same slope AND
-					// both above/below and left/right
-					(((e.y > p1.y) == (e.y > p2.y)) && ((e.x > p1.x) == (e.x > p2.x))) //
-							// or identical y and same x direction
-							|| (e.y == p1.y && ((e.x > p1.x) == (e.x > p2.x))) //
-					// or identical x and same y direction
-					|| (e.x == p1.x && ((e.y > p1.y) == (e.y > p2.y))) //
-					))
+			if (neighborSegmentIntersect(get(i), get(i + 1), get(i + 2))) {
 				return true;
+			}
 		}
+		return false;
+	}
+
+	public boolean neighborSegmentIntersect(Point p1, Point mid, Point p2) {
+		double s1 = (mid.y - p1.y) / (mid.x - p1.x), s2 = (mid.y - p2.y)
+				/ (mid.x - p2.x);
+		// if same slope and same side of point e, segments overlap
+		if (s1 == s2 && ( // same slope AND
+				// both above/below and left/right
+				(((mid.y > p1.y) == (mid.y > p2.y)) && ((mid.x > p1.x) == (mid.x > p2.x))) //
+						// or identical y and same x direction
+						|| (mid.y == p1.y && ((mid.x > p1.x) == (mid.x > p2.x))) //
+				// or identical x and same y direction
+				|| (mid.x == p1.x && ((mid.y > p1.y) == (mid.y > p2.y))) //
+				))
+			return true;
 		return false;
 	}
 
@@ -298,8 +357,14 @@ public class Line implements GMLObject {
 	 */
 	public boolean stillTopologicallyCorrect() {
 		for (Line line : map.lines) {
-			if (lineIntersects(line))
+			if (lineIntersects(line)){
+				System.out.println("Bad intersect");
 				return false;
+			}
+		}
+		if (!(topoPOIs().equals(poisInBounds) && get(0).equals(start)
+				&& get(size() - 1).equals(end))){
+			System.out.println("Pois: "+topoPOIs().equals(poisInBounds)+" presumably start and end are automatic");
 		}
 		return topoPOIs().equals(poisInBounds) && get(0).equals(start)
 				&& get(size() - 1).equals(end);
@@ -323,17 +388,17 @@ public class Line implements GMLObject {
 	}
 
 	public void update() {
-		length = 0;
-		for (int i = 1; i < points.size(); i++) {
-			length += points.get(i - 1).distance(points.get(i));
-		}
+		length = -1;
+		// for (int i = 1; i < points.size(); i++) {
+		// length += points.get(i - 1).distance(points.get(i));
+		// }
 
-		path = new Path2D.Double();
-		if (points.size() == 0)
-			return;
-		path.moveTo(points.get(0).x, points.get(0).y);
-		for (int i = 1; i < points.size(); i++) {
-			path.lineTo(points.get(i).x, points.get(i).y);
-		}
+		pathInvalid = true;
+		// if (points.size() == 0)
+		// return;
+		// path.moveTo(points.get(0).x, points.get(0).y);
+		// for (int i = 1; i < points.size(); i++) {
+		// path.lineTo(points.get(i).x, points.get(i).y);
+		// }
 	}
 }

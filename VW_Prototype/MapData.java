@@ -18,11 +18,26 @@ public class MapData {
 		this.pois = pois;
 	}
 
+	public boolean isTopoCorrect() {
+		int count = 0;
+		for (Line l : lines) {
+			if (!l.stillTopologicallyCorrect())
+				count++;
+		}
+		System.out.println("Map size: "+lines.size()+ " \nBad lines: "+count);
+		if (count>0)
+			return false;
+		return true;
+	}
+
 	public boolean checkTopology(Line line) {
-		return false;
+		return line.stillTopologicallyCorrect();
 	}
 
 	public void setFinal() {
+		for (Line line : lines) {
+			line.setMapData(this);
+		}
 		for (Line line : lines) {
 			// so that we can later check they haven't moved
 			line.recordEndPoints();
@@ -32,8 +47,6 @@ public class MapData {
 			setPath(line);
 
 			line.setInitContains(pois);
-
-			line.setMapData(this);
 		}
 	}
 
@@ -74,7 +87,7 @@ public class MapData {
 					setPath(endL, prevL, prevR, line);
 					return;
 				} else if (findCycle(check, endR, prevR, prevL, ptsR)) {
-					setPath(endL, prevL, prevR, line);
+					setPath(endR, prevL, prevR, line);
 					return;
 				}
 			}
@@ -88,7 +101,11 @@ public class MapData {
 		Point cur = middle;
 		while (prevL.get(cur) != line) {
 			path1.add(prevL.get(cur));
-			cur = otherEnd(prevL.get(cur), cur);
+			Point cur2 = otherEnd(prevL.get(cur), cur);
+			if (cur2 == null) {
+				System.out.println(cur + " " + prevL.get(cur));
+			}
+			cur = cur2;
 		}
 
 		List<Line> path = new ArrayList<Line>();
@@ -139,11 +156,19 @@ public class MapData {
 	}
 
 	private Point otherEnd(Line line, Point pt) {
-		if (line.get(0).equals(pt)) {
-			return line.get(line.size() - 1);
-		}
-		if (line.get(line.size() - 1).equals(pt)) {
-			return line.get(0);
+		try {
+			if (line.get(0).equals(pt)) {
+				return line.get(line.size() - 1);
+			}
+			if (line.get(line.size() - 1).equals(pt)) {
+				return line.get(0);
+			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			System.out.println(pt + " pt");
+			System.out.println(line + " line");
+			System.out.println(line.get(0) + " first");
+
 		}
 		return null;
 	}

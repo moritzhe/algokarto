@@ -32,8 +32,8 @@ public class KartoTest implements KeyListener {
 			// 3: Paper combine test
 			// 4: Iceland
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
-			int id = 5;
-			args = new String[] { "300", "algokarto/lines_out" + id + ".txt",
+			int id = 1;
+			args = new String[] { "600", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}
 
@@ -46,7 +46,8 @@ public class KartoTest implements KeyListener {
 		// do work
 		KartoTest karto = new KartoTest();
 		karto.readData(lineInput, pointInput);
-		karto.simplify(maxEdgesToKeep);
+		if (!DEBUG)
+			karto.simplify(maxEdgesToKeep);
 		karto.writeFile(output);
 
 		// if testing, show in panel
@@ -146,6 +147,7 @@ public class KartoTest implements KeyListener {
 						.doubleValue()));
 			}
 		}
+		map.setFinal();
 	}
 
 	private List<GMLObject> updateBends() {
@@ -164,6 +166,7 @@ public class KartoTest implements KeyListener {
 		panel.setGMLObjects(updateBends());
 		JFrame frame = GMLPanel.showPanelInWindow(panel);
 		frame.addKeyListener(this);
+		System.out.println("Map is correct: "+map.isTopoCorrect());
 	}
 
 	@Override
@@ -227,6 +230,7 @@ public class KartoTest implements KeyListener {
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		}
+		System.out.println("Map is correct: "+map.isTopoCorrect());
 	}
 
 }
