@@ -29,7 +29,7 @@ public class Point extends Point2D.Double implements GMLObject {
 
 	public void rollbackTransaction() {
 		setPosition(transActPositionX, transActPositionY);
-		System.out.println("Deleted:" + transActDeleted);
+		//System.out.println("Deleted:" + transActDeleted);
 		if (transActDeleted) {
 			for (Line line : lines) {
 				line.points.add(transActLinePositions.get(line), this);
@@ -41,6 +41,7 @@ public class Point extends Point2D.Double implements GMLObject {
 
 	public void commitTransaction() {
 		transActLinePositions.clear();
+		transActDeleted = false;
 	}
 
 	public void loesch() {
