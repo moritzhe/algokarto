@@ -339,6 +339,7 @@ public class Bend extends Line {
 			for (Point p : originalPoints) {
 				p.commitTransaction();
 			}
+			System.out.println(parentLine.output());
 			return true;
 		}
 	}

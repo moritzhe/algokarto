@@ -60,10 +60,13 @@ public class WM {
 								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
 								&& bend.getAdjustedSize() > bends.get(i + 1)
 										.getAdjustedSize()) {
+//							String str = bends.get(i) + "\n" + bends.get(i + 2)
+//									+ "\n";
 							changeHappened = bend.combine(bends.get(i + 1),
 									bends.get(i + 2));
 
 							if (changeHappened) {
+//								System.out.println(str);
 								countChanges[1]++;
 								break;
 							}
