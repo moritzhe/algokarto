@@ -138,8 +138,12 @@ public class Line implements GMLObject {
 			aIdx = tmp;
 		}
 		double dist = 0.0;
+		//System.out.println("Point ["+aIdx+"] "+points.get(aIdx).x+","+points.get(aIdx).y+":");
+		//System.out.println(0);
 		for (int i = aIdx; i < bIdx; ++i) {
+			//System.out.println("Point ["+(i+1)+"] "+points.get(i+1).x+","+points.get(i+1).y+":");
 			dist += points.get(i).distance(points.get(i + 1));
+			//System.out.println(dist);
 		}
 		return dist;
 	}
@@ -147,7 +151,7 @@ public class Line implements GMLObject {
 	public double getLength() {
 		if (length == -1) {
 			length = 0;
-			for (int i = 0; i < size() - 2; i++) {
+			for (int i = 0; i < size() - 1; i++) {
 				length += get(i).distance(get(i + 1));
 			}
 		}

@@ -211,6 +211,8 @@ public class Bend extends Line {
 	public boolean combine(Bend bendB, Bend bendC) {
 		String str = parentLine.output();
 		
+		final double movementFactorMultiplier = 0.5;
+		
 		assert(validatePointLineRelationShip());
 		assert(bendB.validatePointLineRelationShip());
 		assert(bendC.validatePointLineRelationShip());
@@ -263,16 +265,25 @@ public class Bend extends Line {
 
 		// Bewegung pro Punkt
 		Map<Point, Double> movementFactors = new HashMap<Point, Double>();
-
+		
+		//Regression Check: getLength ist korrekt
+		if (bendC.getLength() != bendC.getDistanceBetween(
+				bendC.points.get(0), bendC.points.get(bendC.points.size()-1))){
+			System.out.println("Bend Length:" + bendC.getLength());
+			System.out.println("Dist Between: " + bendC.getDistanceBetween(
+				bendC.points.get(0), bendC.points.get(bendC.points.size()-1)));
+			assert(false);
+		}
+		
 		for (Point p : points) {
 			Point firstPoint = points.get(0);
 			double distanceToFirst = getDistanceBetween(firstPoint, p);
 			double factor = distanceToFirst / getLength();
-			movementFactors.put(p, factor * 0.5);
+			movementFactors.put(p, factor * movementFactorMultiplier);
 			// System.out.println(factor);
 		}
-		//assert (movementFactors.get(A) == 1.0);
-		//assert (movementFactors.get(points.get(0)) == 0.0);
+		assert (movementFactors.get(A) == 1.0 * movementFactorMultiplier);
+		assert (movementFactors.get(points.get(0)) == 0.0);
 
 		// System.out.println("-");
 
@@ -280,13 +291,11 @@ public class Bend extends Line {
 			Point lastPoint = bendC.points.get(bendC.points.size() - 1);
 			double distanceToLast = bendC.getDistanceBetween(lastPoint, p);
 			double factor = distanceToLast / bendC.getLength();
-			movementFactors.put(p, factor * 0.5);
+			movementFactors.put(p, factor * movementFactorMultiplier);
 			// System.out.println(factor);
 		}
-		//assert (movementFactors.get(C) == 1.0);
-		//assert (movementFactors.get(bendC.points.get(bendC.points.size() - 1)) == 0.0);
-		//assert (bendC.getLength() == bendC.getDistanceBetween(
-		//		bendC.points.get(0), bendC.points.get(bendC.points.size()-1)));
+		assert (movementFactors.get(C) == 1.0 * movementFactorMultiplier);
+		assert (movementFactors.get(bendC.points.get(bendC.points.size() - 1)) == 0.0);
 
 		// DebugCode
 		// Point _A = points.get(2);

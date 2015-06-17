@@ -233,7 +233,7 @@ public class KartoTest implements KeyListener {
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		}
-		//System.out.println("Map is correct: "+map.isTopoCorrect());
+		System.out.println("Map is correct: "+map.isTopoCorrect());
 	}
 
 }
