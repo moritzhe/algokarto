@@ -33,7 +33,7 @@ public class KartoTest implements KeyListener {
 			// 4: Iceland
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
 			// 6: NH really weird combine
-			int id = 4;
+			int id = 1;
 			args = new String[] { "600", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}
@@ -181,9 +181,11 @@ public class KartoTest implements KeyListener {
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		} else if (e.getKeyCode() == e.VK_C) {
+			System.out.println("Combine....");
 			panel.combineSelectedBend();
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
+			System.out.println("Endcombine....");
 		}
 	}
 
@@ -231,7 +233,7 @@ public class KartoTest implements KeyListener {
 			panel.setGMLObjects(updateBends());
 			panel.repaint();
 		}
-		System.out.println("Map is correct: "+map.isTopoCorrect());
+		//System.out.println("Map is correct: "+map.isTopoCorrect());
 	}
 
 }

@@ -85,7 +85,15 @@ public class Line implements GMLObject {
 		for (int i = 2; i < this.size() - 1; i++) {
 			boolean pos = isPositive(this.get(i - 1), this.get(i),
 					this.get(i + 1));
+			assert(bend.validatePointLineRelationShip());
 			bend.add(this.get(i));
+			if (!bend.validatePointLineRelationShip()){
+				//System.out.println("Punkt: "+this.get(i));
+				//Line testLine = new Line();
+				//testLine.add(this.get(i));
+				//System.out.println(this.get(i).equals(this.get(i)));
+				assert(false);
+			}
 			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
 				bends.add(bend);
 				bend = new Bend(this.get(i - 1), this.get(i), pos, this);
@@ -94,6 +102,11 @@ public class Line implements GMLObject {
 		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte
 		bend.add(this.get(this.size() - 1));
 		bends.add(bend);
+		
+		for(Bend bendToCheck : bends){
+			assert(bendToCheck.validatePointLineRelationShip());
+		}
+		
 		return bends;
 	}
 
@@ -438,9 +451,9 @@ public class Line implements GMLObject {
 		end = new Point(get(size() - 1).x, get(size() - 1).y);
 	}
 
-	public void remove(Point p) {
+	public void remove(Point p, boolean noCallback) {
 		points.remove(p);
-		p.loesch();
+		if (!noCallback) p.loesch();
 		update();
 	}
 
@@ -520,5 +533,12 @@ public class Line implements GMLObject {
 		// for (int i = 1; i < points.size(); i++) {
 		// path.lineTo(points.get(i).x, points.get(i).y);
 		// }
+	}
+	
+	public boolean validatePointLineRelationShip(){
+		for (Point p: points){
+			if (!p.containedByLine(this)) return false;
+		}
+		return true;
 	}
 }

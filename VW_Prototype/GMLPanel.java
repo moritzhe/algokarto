@@ -36,6 +36,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
 		calculateGMLBounds();
+		System.out.println("new Objects");
 	}
 
 	/**
@@ -95,9 +96,9 @@ public class GMLPanel extends JPanel implements MouseListener {
 		// change G2D affine to ours
 		gr.transform(calculateAffine());
 		//
-		Stroke defaultStroke = new BasicStroke((float) .01);//gr.getStroke();
+		Stroke defaultStroke = new BasicStroke(1000 /*(float) .01*/);//gr.getStroke();
 		gr.setStroke(defaultStroke);
-		Stroke selectedStroke = new BasicStroke(2);//2000
+		Stroke selectedStroke = new BasicStroke(2000);//2000
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
 			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject) {
@@ -290,7 +291,9 @@ public class GMLPanel extends JPanel implements MouseListener {
 			if (bendB != null) {
 				Bend bendC = prevBend(bend);
 				if (bendC != null) {
+					Bend.ignoreChecks = true;
 					bendC.combine(bend, bendB);
+					Bend.ignoreChecks = false;
 				} else {
 					System.out.println("Kein vorheriger Nachbar");
 				}

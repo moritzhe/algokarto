@@ -15,8 +15,21 @@ public class Point extends Point2D.Double implements GMLObject {
 	private double transActPositionY;
 	private Map<Line, Integer> transActLinePositions;
 	private boolean transActDeleted;
+	private boolean inTransaction = false;
+	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof Point){
+			//NaN-Punkte sind auch Equal
+			return (this == o || super.equals(o));
+		}
+		
+		return super.equals(o);
+	}
 
 	public void beginOfTransaction() {
+		assert(!inTransaction);
+		inTransaction = true;
 		transActPositionX = x;
 		transActPositionY = y;
 		transActDeleted = false;
@@ -41,6 +54,7 @@ public class Point extends Point2D.Double implements GMLObject {
 	public void commitTransaction() {
 		transActLinePositions.clear();
 		transActDeleted = false;
+		inTransaction = false;
 	}
 
 	public void loesch() {
@@ -48,12 +62,20 @@ public class Point extends Point2D.Double implements GMLObject {
 		if (!transActDeleted) {
 			transActDeleted = true;
 			for (Line line : lines) {
-				line.remove(this);
+				//System.out.println("Line Size before: "+line.points.size());
+				assert(line.points.contains(this));
+				line.remove(this, true);
+				assert(!line.points.contains(this));
+				//System.out.println("Line Size after: "+line.points.size());
 			}
+		}
+		else{
+			assert(lines.isEmpty());
 		}
 	}
 
 	public void addToLine(Line l) {
+		assert(!inTransaction);
 		lines.add(l);
 	}
 
@@ -106,5 +128,9 @@ public class Point extends Point2D.Double implements GMLObject {
 		l = new Line2D.Double(x, y - yDiff, x, y + yDiff);
 		g.draw(l);
 		g.setColor(c);
+	}
+	
+	public boolean containedByLine(Line line){
+		return lines.contains(line);
 	}
 }

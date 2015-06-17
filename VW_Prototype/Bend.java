@@ -8,6 +8,7 @@ public class Bend extends Line {
 	private boolean isPositive;
 	private double area = -1;
 	private Line parentLine;
+	public static boolean ignoreChecks = false;
 
 	public Bend(Point p1, Point p2, boolean pos, Line parentLine) {
 		super();
@@ -20,6 +21,7 @@ public class Bend extends Line {
 			setColor(Color.RED);
 		}
 		this.parentLine = parentLine;
+		assert(validatePointLineRelationShip());
 	}
 
 	public Bend(Line line) {
@@ -189,6 +191,10 @@ public class Bend extends Line {
 			}
 			return false;
 		}
+		
+		for (Point p : originalPoints) {
+			p.commitTransaction();
+		}
 
 		return true;
 	}
@@ -205,6 +211,10 @@ public class Bend extends Line {
 	public boolean combine(Bend bendB, Bend bendC) {
 		String str = parentLine.output();
 		
+		assert(validatePointLineRelationShip());
+		assert(bendB.validatePointLineRelationShip());
+		assert(bendC.validatePointLineRelationShip());
+		
 		// Bends muessen benachbart sein
 		if (points.get(points.size() - 1) != bendB.points.get(1)) {
 			System.out.println("Nicht benachbart: B");
@@ -217,19 +227,11 @@ public class Bend extends Line {
 
 		// Original Points to restore
 		List<Point> originalPoints = new ArrayList<Point>();
-		for (Point p : points) {
+		for (Point p : parentLine.points) {
 			p.beginOfTransaction();
 			originalPoints.add(p);
 		}
-		for (Point p : bendB.points) {
-			p.beginOfTransaction();
-			originalPoints.add(p);
-		}
-		for (Point p : bendC.points) {
-			p.beginOfTransaction();
-			originalPoints.add(p);
-		}
-
+		
 		// Vorgeschlagener Wert vom Paper
 		final double combinedPeakFactor = 1.2;
 
@@ -269,8 +271,8 @@ public class Bend extends Line {
 			movementFactors.put(p, factor * 0.5);
 			// System.out.println(factor);
 		}
-		assert (movementFactors.get(A) == 1.0);
-		assert (movementFactors.get(points.get(0)) == 0.0);
+		//assert (movementFactors.get(A) == 1.0);
+		//assert (movementFactors.get(points.get(0)) == 0.0);
 
 		// System.out.println("-");
 
@@ -281,10 +283,10 @@ public class Bend extends Line {
 			movementFactors.put(p, factor * 0.5);
 			// System.out.println(factor);
 		}
-		assert (movementFactors.get(C) == 1.0);
-		assert (movementFactors.get(bendC.points.get(bendC.points.size() - 1)) == 0.0);
-		assert (bendC.getLength() == bendC.getDistanceBetween(
-				bendC.points.get(0), bendC.points.get(bendC.points.size())));
+		//assert (movementFactors.get(C) == 1.0);
+		//assert (movementFactors.get(bendC.points.get(bendC.points.size() - 1)) == 0.0);
+		//assert (bendC.getLength() == bendC.getDistanceBetween(
+		//		bendC.points.get(0), bendC.points.get(bendC.points.size()-1)));
 
 		// DebugCode
 		// Point _A = points.get(2);
@@ -330,7 +332,7 @@ public class Bend extends Line {
 		}
 
 		// Ueberpruefen, ob die neue Bend valide ist
-		if (!parentLine.stillTopologicallyCorrect()) {
+		if (!ignoreChecks && !parentLine.stillTopologicallyCorrect()) {
 			// Revert changes
 			for (Point p : originalPoints) {
 				p.rollbackTransaction();
@@ -367,6 +369,7 @@ public class Bend extends Line {
 			return;
 		}
 		while (points.size() > newEndIndex + 1) {
+			assert(points.get(newEndIndex + 1).containedByLine(this));
 			points.get(newEndIndex + 1).loesch();
 		}
 	}
@@ -378,6 +381,7 @@ public class Bend extends Line {
 			return;
 		}
 		while (points.get(0) != p) {
+			assert(points.get(0).containedByLine(this));
 			points.get(0).loesch();
 		}
 	}
@@ -418,5 +422,6 @@ public class Bend extends Line {
 		}
 		return false;
 	}
+	
 
 }
