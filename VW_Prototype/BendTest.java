@@ -1,7 +1,11 @@
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -98,10 +102,13 @@ public class BendTest {
 
 		assertFalse(line.lineSelfIntersects());
 		for (int i = 0; i < bends.size(); i++) {
+			bends.get(i).recordEndPoints();
 			assertFalse(bends.get(i).lineSelfIntersects());
 			if (i < bends.size() - 1)
 				assertTrue(bends.get(i).lineIntersects(bends.get(i + 1)));
 		}
+		// System.out.println(
+		// bends.get(0).size()+" "+bends.get(bends.size()-1).size());
 		assertFalse(bends.get(0).lineIntersects(bends.get(bends.size() - 1)));
 
 		// intersect at point
@@ -140,40 +147,63 @@ public class BendTest {
 	}
 
 	@Test
-	public void testInitLineIntersects() {
+	public void testInitLineIntersects2() {
+		Line l1 = initLineIntersectTest("-8016058.200610452,5311347.903380732 -8019151.323981643,5310538.289127092 -8017661.646555842,5307130.838740712 -8019303.386406063,5302365.652452341");
+		Line l2 = initLineIntersectTest("-8019303.386406063,5302365.652452341 -8018884.602481692,5302354.101632512 -8019744.100270113,5295296.213758642 -8021524.210247393,5285677.481547092 -8021614.267715442,5283586.0880270805 -8021874.198726443,5277652.756805111 -8021999.878431553,5274447.117107532 -8015732.034502433,5274305.441073522 -8015438.151046742,5272366.439750611 -8015171.540866292,5270610.356014232 -8013987.546762212,5262404.209090772 -8013249.498538252,5257654.433460792 -8012203.206644283,5250921.165587872 -8008911.266662553,5250800.705827912 -8007132.047241203,5239267.532868552");
+
+		Line l3 = initLineIntersectTest("-8018884.602481692,5302354.101632512 -8019744.100270113,5295296.213758642 -8021524.210247393,5285677.481547092 -8021614.267715442,5283586.0880270805 -8021874.198726443,5277652.756805111 -8021999.878431553,5274447.117107532 -8015732.034502433,5274305.441073522 -8015438.151046742,5272366.439750611 -8015171.540866292,5270610.356014232 -8013987.546762212,5262404.209090772 -8013249.498538252,5257654.433460792 -8012203.206644283,5250921.165587872 -8008911.266662553,5250800.705827912 -8007132.047241203,5239267.532868552");
+		
+		for (int i = 0; i < l1.size(); i++) {
+			if (l2.points.contains(l1.get(i)))
+				System.out.println(l1.get(i));
+		}
+
+		assertTrue(l2.get(0).equals(l1.get(l1.size() - 1)));
+		assertFalse(l1.lineIntersects(l3));
+
+		System.out.println(l1.lineIntersects(l2));
+		System.out.println(l2.lineIntersects(l1));
+	}
+
+	public Line initLineIntersectTest(String l1) {
+		StringTokenizer tk = new StringTokenizer(l1, " ,");
 		Line line1 = new Line();
-		line1.add(new Point(-7929990.868386692, 5326092.063381992));
-		line1.add(new Point(-7921564.205572623, 5336939.267557371));
-		line1.add(new Point(-7925134.666920332, 5360880.566086502));
-		line1.add(new Point(-7921952.265317532, 5364977.4508753205));
+		while (tk.hasMoreElements()) {
+			line1.add(new Point(Double.parseDouble(tk.nextToken()), Double
+					.parseDouble(tk.nextToken())));
+		}
 		line1.recordEndPoints();
-		assertEquals(
-				"-7929990.868386692,5326092.063381992 -7921564.205572623,5336939.267557371 -7925134.666920332,5360880.566086502 -7921952.265317532,5364977.4508753205",
-				line1.output());
-		Line line2 = new Line();
-		line2.add(new Point(-7931258.129469883, 5324489.661286581));
-		line2.add(new Point(-7929990.868386692, 5326092.063381992));
-		line2.recordEndPoints();
+		return line1;
+	}
+
+	@Test
+	public void testInitLineIntersects() {
+		// Line line1 = new Line();
+		// line1.add(new Point(-7929990.868386692, 5326092.063381992));
+		// line1.add(new Point(-7921564.205572623, 5336939.267557371));
+		// line1.add(new Point(-7925134.666920332, 5360880.566086502));
+		// line1.add(new Point(-7921952.265317532, 5364977.4508753205));
+		// line1.recordEndPoints();
+		// assertEquals(
+		// "-7929990.868386692,5326092.063381992 -7921564.205572623,5336939.267557371 -7925134.666920332,5360880.566086502 -7921952.265317532,5364977.4508753205",
+		// line1.output());
+		// Line line2 = new Line();
+		// line2.add(new Point(-7931258.129469883, 5324489.661286581));
+		// line2.add(new Point(-7929990.868386692, 5326092.063381992));
+		// line2.recordEndPoints();
+
+		Line line1 = initLineIntersectTest("-7929990.868386692,5326092.063381992 -7921564.205572623,5336939.267557371 -7925134.666920332,5360880.566086502 -7921952.265317532,5364977.4508753205");
+		Line line2 = initLineIntersectTest("-7931258.129469883,5324489.661286581 -7929990.868386692,5326092.063381992");
+
 		assertEquals(
 				"-7931258.129469883,5324489.661286581 -7929990.868386692,5326092.063381992",
 				line2.output());
 
 		// start testing:
 		assertEquals(line1.get(0), line2.get(1));
-		
+
 		assertFalse(line2.lineIntersects(line1));
 		assertFalse(line1.lineIntersects(line2));
-
-	}
-
-	@Test
-	public void testUpdate() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testBendConstructors() {
-		fail("Not yet implemented");
 	}
 
 	@Test

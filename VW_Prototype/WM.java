@@ -60,10 +60,13 @@ public class WM {
 								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
 								&& bend.getAdjustedSize() > bends.get(i + 1)
 										.getAdjustedSize()) {
-							bend.combine(bends.get(i + 1), bends.get(i + 2));
-							changeHappened = true;
-							countChanges[1]++;
-							break;
+							changeHappened = bend.combine(bends.get(i + 1),
+									bends.get(i + 2));
+
+							if (changeHappened) {
+								countChanges[1]++;
+								break;
+							}
 						}
 
 						// ELIMINATE LOCAL MINIMAL BEND
@@ -74,10 +77,12 @@ public class WM {
 										.getAdjustedSize()
 								&& bend.getAdjustedSize() < bends.get(i + 1)
 										.getAdjustedSize()) {
-							bend.eliminate();
-							changeHappened = true;
-							countChanges[2]++;
-							break;
+							changeHappened = bend.eliminate(map);
+
+							if (changeHappened) {
+								countChanges[2]++;
+								break;
+							}
 						}
 					}
 				}

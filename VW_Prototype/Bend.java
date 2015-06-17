@@ -139,14 +139,9 @@ public class Bend extends Line {
 		}
 
 		return true;
-
 	}
 
 	public boolean exaggerate() {
-		return exaggerate(null);
-	}
-
-	public boolean exaggerate(MapData mapToCheck) {
 		// if bend is empty, do nothing
 		if (points.size() == 0)
 			return false;
@@ -208,10 +203,6 @@ public class Bend extends Line {
 	 */
 
 	public boolean combine(Bend bendB, Bend bendC) {
-		return combine(bendB, bendC, null);
-	}
-
-	public boolean combine(Bend bendB, Bend bendC, MapData mapToCheck) {
 		// Bends muessen benachbart sein
 		if (points.get(points.size() - 1) != bendB.points.get(1)) {
 			System.out.println("Nicht benachbart: B");
@@ -235,18 +226,6 @@ public class Bend extends Line {
 		for (Point p : bendC.points) {
 			p.beginOfTransaction();
 			originalPoints.add(p);
-		}
-
-		Map<Point, Boolean> pointsInBend = new HashMap<Point, Boolean>();
-
-		if (mapToCheck != null) {
-			for (Point p : mapToCheck.pois) {
-				boolean inside = isPointInBendArea(p)
-						|| bendC.isPointInBendArea(p);
-				if (inside) {
-					pointsInBend.put(p, inside);
-				}
-			}
 		}
 
 		// Vorgeschlagener Wert vom Paper
@@ -349,45 +328,7 @@ public class Bend extends Line {
 		}
 
 		// Ueberpruefen, ob die neue Bend valide ist
-		boolean invalid = false;
-
-		// Zum testen Punkte von BendB und BendC in diese Bend aufnehmen
-		for (Point pointInB : bendB.points) {
-			if (!points.contains(pointInB)) {
-				add(pointInB);
-			}
-		}
-
-		for (Point pointInC : bendC.points) {
-			if (!points.contains(pointInC)) {
-				add(pointInC);
-			}
-		}
-
-		// Gegen POIs pruefen
-		// TODO:: besseren Check aus exeggerate uebernehmen
-		// TODO: use line.stillTopologicallyCorrect()
-		if (mapToCheck != null) {
-			for (Point p : mapToCheck.pois) {
-				boolean inside = isPointInBendArea(p);
-				if (inside != pointsInBend.containsKey(p)) {
-					invalid = true;
-					break;
-				}
-			}
-		}
-
-		// Auf Schnitte pruefen
-		if (mapToCheck != null && !invalid) {
-			for (Line line : mapToCheck.lines) {
-				if (line.lineIntersects(parentLine)) {
-					invalid = true;
-					break;
-				}
-			}
-		}
-
-		if (invalid) {
+		if (!parentLine.stillTopologicallyCorrect()) {
 			// Revert changes
 			for (Point p : originalPoints) {
 				p.rollbackTransaction();
@@ -400,7 +341,6 @@ public class Bend extends Line {
 			}
 			return true;
 		}
-		// System.out.println(":" + _F.x + "," + _F.y);
 	}
 
 	public Point getPeak() {

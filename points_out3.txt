@@ -1,1 +1,1 @@
-1:<gml:Point srsName="EPSG:54004" xmlns:gml="http://www.opengis.net/gml"><gml:coordinates decimal="." cs="," ts=" ">15,20 </gml:coordinates></gml:Point>
+1:<gml:Point srsName="EPSG:54004" xmlns:gml="http://www.opengis.net/gml"><gml:coordinates decimal="." cs="," ts=" ">35,20 </gml:coordinates></gml:Point>

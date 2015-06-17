@@ -197,7 +197,7 @@ public class Line implements GMLObject {
 		}
 		if (match)
 			return true;
-		for (int i = size() - 1; i >= 0; i++) {
+		for (int i = size() - 1; i >= 0; i--) {
 			if (!get(i).equals(l2.get(i))) {
 				return false;
 			}
@@ -226,6 +226,7 @@ public class Line implements GMLObject {
 				if (!lineSegmentsIntersect(start, end, line.start, line.end))
 					return false;
 				// TODO: finish this case
+				System.out.println("Both lines were size 2 :(");
 				return true;
 			}
 		}
@@ -260,22 +261,44 @@ public class Line implements GMLObject {
 					if (lineExtreme.equals(extreme)) {
 						if (this.neighborSegmentIntersect(lineOther, extreme,
 								ext2)) {
-							System.out.println("Endpoint bad intersect: Mid: "
-									+ extreme + " Other: " + lineOther
-									+ " This: " + ext2);
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineOther
+							// + " This: " + ext2);
 							return true;
 						}
-						System.out.println("Endpoint intersect special");
+//						System.out.println("Endpoint intersect special");
 					} else if (line.size() == 2 && lineOther.equals(extreme)) {
 						if (this.neighborSegmentIntersect(lineExtreme, extreme,
 								ext2)) {
-							System.out.println("Endpoint bad intersect: Mid: "
-									+ extreme + " Other: " + lineExtreme
-									+ " This: " + ext2);
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineExtreme
+							// + " This: " + ext2);
 							return true;
 						}
-						System.out.println("Endpoint intersect special");
+//						System.out.println("Endpoint intersect special");
 
+					}
+				} else if (i == line.size() - 2) {
+					Point lineExtreme = line.get(line.size() - 1), lineOther = line
+							.get(i);
+					if (lineExtreme.equals(extreme)) {
+						if (this.neighborSegmentIntersect(lineOther, extreme,
+								ext2)) {
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineOther
+							// + " This: " + ext2);
+							return true;
+						}
+//						System.out.println("Endpoint intersect special");
+					} else if (line.size() == 2 && lineOther.equals(extreme)) {
+						if (this.neighborSegmentIntersect(lineExtreme, extreme,
+								ext2)) {
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineExtreme
+							// + " This: " + ext2);
+							return true;
+						}
+//						System.out.println("Endpoint intersect special");
 					}
 				} else
 					return true;
@@ -286,28 +309,49 @@ public class Line implements GMLObject {
 			ext2 = get(size() - 2);
 			if (lineSegmentsIntersect(line.get(i), line.get(i + 1), extreme,
 					ext2)) {
-				if (i == line.size() - 2) {
+				if (i == 0) {
+					Point lineExtreme = line.get(0), lineOther = line.get(1);
+					if (lineExtreme.equals(extreme)) {
+						if (this.neighborSegmentIntersect(lineOther, extreme,
+								ext2)) {
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineOther
+							// + " This: " + ext2);
+							return true;
+						}
+//						System.out.println("Endpoint intersect special");
+					} else if (line.size() == 2 && lineOther.equals(extreme)) {
+						if (this.neighborSegmentIntersect(lineExtreme, extreme,
+								ext2)) {
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineExtreme
+							// + " This: " + ext2);
+							return true;
+						}
+//						System.out.println("Endpoint intersect special");
+
+					}
+				} else if (i == line.size() - 2) {
 					Point lineExtreme = line.get(line.size() - 1), lineOther = line
 							.get(i);
 					if (lineExtreme.equals(extreme)) {
 						if (this.neighborSegmentIntersect(lineOther, extreme,
 								ext2)) {
-							System.out.println("Endpoint bad intersect: Mid: "
-									+ extreme + " Other: " + lineOther
-									+ " This: " + ext2);
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineOther
+							// + " This: " + ext2);
 							return true;
 						}
-						System.out.println("Endpoint intersect special");
+//						System.out.println("Endpoint intersect special");
 					} else if (line.size() == 2 && lineOther.equals(extreme)) {
 						if (this.neighborSegmentIntersect(lineExtreme, extreme,
 								ext2)) {
-							System.out.println("Endpoint bad intersect: Mid: "
-									+ extreme + " Other: " + lineExtreme
-									+ " This: " + ext2);
+							// System.out.println("Endpoint bad intersect: Mid: "
+							// + extreme + " Other: " + lineExtreme
+							// + " This: " + ext2);
 							return true;
 						}
-						System.out.println("Endpoint intersect special");
-
+//						System.out.println("Endpoint intersect special");
 					}
 				} else
 					return true;
@@ -343,6 +387,8 @@ public class Line implements GMLObject {
 	 */
 	public static boolean lineSegmentsIntersect(Point pointA1, Point pointA2,
 			Point pointB1, Point pointB2) {
+		// Note: if getting a null pointer exception here, try calling
+		// "recordEndPoints()" of the original line(s) first
 		return Line2D.linesIntersect(pointA1.x, pointA1.y, pointA2.x,
 				pointA2.y, pointB1.x, pointB1.y, pointB2.x, pointB2.y);
 	}
@@ -429,16 +475,16 @@ public class Line implements GMLObject {
 	public boolean stillTopologicallyCorrect() {
 		for (Line line : map.lines) {
 			if (lineIntersects(line)) {
-				System.out.println("Bad intersect size" + size() + ", "
-						+ line.size() + ": " + this.output() + "\n"
-						+ line.output());
+//				System.out.println("Bad intersect size" + size() + ", "
+//						+ line.size() + ": " + this.output() + "\n"
+//						+ line.output());
 				return false;
 			}
 		}
 		if (!(topoPOIs().equals(poisInBounds) && get(0).equals(start) && get(
 				size() - 1).equals(end))) {
-			System.out.println("Pois: " + topoPOIs().equals(poisInBounds)
-					+ " presumably start and end are automatic");
+//			System.out.println("Pois: " + topoPOIs().equals(poisInBounds)
+//					+ " presumably start and end are automatic");
 		}
 		return topoPOIs().equals(poisInBounds) && get(0).equals(start)
 				&& get(size() - 1).equals(end);
