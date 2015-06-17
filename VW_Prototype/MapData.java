@@ -13,7 +13,7 @@ public class MapData {
 		this(new ArrayList<Line>(), new ArrayList<Point>());
 	}
 
-	public MapData(ArrayList<Line> lines, ArrayList<Point> pois) {
+	public MapData(List<Line> lines, List<Point> pois) {
 		this.lines = lines;
 		this.pois = pois;
 	}

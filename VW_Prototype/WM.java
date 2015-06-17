@@ -67,6 +67,7 @@ public class WM {
 
 							if (changeHappened) {
 //								System.out.println(str);
+								System.out.println(userTolerance);
 								countChanges[1]++;
 								break;
 							}
