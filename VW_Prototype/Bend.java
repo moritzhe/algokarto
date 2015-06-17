@@ -203,6 +203,8 @@ public class Bend extends Line {
 	 */
 
 	public boolean combine(Bend bendB, Bend bendC) {
+		String str = parentLine.output();
+		
 		// Bends muessen benachbart sein
 		if (points.get(points.size() - 1) != bendB.points.get(1)) {
 			System.out.println("Nicht benachbart: B");
@@ -339,7 +341,7 @@ public class Bend extends Line {
 			for (Point p : originalPoints) {
 				p.commitTransaction();
 			}
-			System.out.println(parentLine.output());
+			System.out.println(str);
 			return true;
 		}
 	}
