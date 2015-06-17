@@ -99,17 +99,23 @@ public class BendTest {
 		assertFalse(line.lineSelfIntersects());
 		for (int i = 0; i < bends.size(); i++) {
 			assertFalse(bends.get(i).lineSelfIntersects());
+			if (i < bends.size() - 1)
+				assertTrue(bends.get(i).lineIntersects(bends.get(i + 1)));
 		}
+		assertFalse(bends.get(0).lineIntersects(bends.get(bends.size() - 1)));
 
 		// intersect at point
 		line.get(1).x = 6;
 		assertTrue(line.lineSelfIntersects());
+		assertTrue(bends.get(0).lineIntersects(bends.get(bends.size() - 1)));
 		// intersect on segment
 		line.get(1).y = 1;
 		assertTrue(line.lineSelfIntersects());
+		assertTrue(bends.get(0).lineIntersects(bends.get(bends.size() - 1)));
 		// intersect across segment
 		line.get(1).y = 2;
 		assertTrue(line.lineSelfIntersects());
+		assertTrue(bends.get(0).lineIntersects(bends.get(bends.size() - 1)));
 		// intersect with neighbor
 		line.get(1).x = 2;
 		line.get(1).y = 5;
@@ -120,7 +126,7 @@ public class BendTest {
 		// weird don't intersect with neighbor
 		line.get(1).x = 5.5;
 		assertFalse(line.lineSelfIntersects());
-		
+
 		// reset 1
 		line.get(1).x = 5;
 		line.get(1).y = 0;
@@ -131,6 +137,33 @@ public class BendTest {
 		// divide by zero non-intersect with neighbor
 		line.get(2).y = 4;
 		assertFalse(line.lineSelfIntersects());
+	}
+
+	@Test
+	public void testInitLineIntersects() {
+		Line line1 = new Line();
+		line1.add(new Point(-7929990.868386692, 5326092.063381992));
+		line1.add(new Point(-7921564.205572623, 5336939.267557371));
+		line1.add(new Point(-7925134.666920332, 5360880.566086502));
+		line1.add(new Point(-7921952.265317532, 5364977.4508753205));
+		line1.recordEndPoints();
+		assertEquals(
+				"-7929990.868386692,5326092.063381992 -7921564.205572623,5336939.267557371 -7925134.666920332,5360880.566086502 -7921952.265317532,5364977.4508753205",
+				line1.output());
+		Line line2 = new Line();
+		line2.add(new Point(-7931258.129469883, 5324489.661286581));
+		line2.add(new Point(-7929990.868386692, 5326092.063381992));
+		line2.recordEndPoints();
+		assertEquals(
+				"-7931258.129469883,5324489.661286581 -7929990.868386692,5326092.063381992",
+				line2.output());
+
+		// start testing:
+		assertEquals(line1.get(0), line2.get(1));
+		
+		assertFalse(line2.lineIntersects(line1));
+		assertFalse(line1.lineIntersects(line2));
+
 	}
 
 	@Test
