@@ -209,7 +209,7 @@ public class Bend extends Line {
 	 */
 
 	public boolean combine(Bend bendB, Bend bendC) {
-		String str = parentLine.output();
+//		String str = parentLine.output();
 		
 		final double movementFactorMultiplier = 0.5;
 		
@@ -352,7 +352,7 @@ public class Bend extends Line {
 			for (Point p : originalPoints) {
 				p.commitTransaction();
 			}
-			System.out.println(str);
+//			System.out.println(str);
 			return true;
 		}
 	}

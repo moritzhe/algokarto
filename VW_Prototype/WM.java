@@ -60,14 +60,16 @@ public class WM {
 								&& bend.similarityTo(bends.get(i + 2)) < SIMILAR_THRESHOLD
 								&& bend.getAdjustedSize() > bends.get(i + 1)
 										.getAdjustedSize()) {
-//							String str = bends.get(i) + "\n" + bends.get(i + 2)
-//									+ "\n";
+							// String str = bends.get(i) + "\n" + bends.get(i +
+							// 2)
+							// + "\n";
 							changeHappened = bend.combine(bends.get(i + 1),
 									bends.get(i + 2));
 
 							if (changeHappened) {
-//								System.out.println(str);
-								System.out.println(userTolerance);
+								// System.out.println(str);
+								System.out.println("User tolerance: "
+										+ userTolerance);
 								countChanges[1]++;
 								break;
 							}
@@ -92,12 +94,15 @@ public class WM {
 				}
 			}
 		} while (changeHappened);
-		System.out.println("Made " + countChanges[0] + " exaggerations,\n\t"
-				+ countChanges[1] + " combinations, and\n\t" + countChanges[2]
-				+ " eliminations");
-		System.out.println("There are now " + map.getSegments()
-				+ " segments left");
-		System.out.println(userTolerance);
-		System.out.println();
+		if (countChanges[0] + countChanges[1] + countChanges[2] > 0) {
+			System.out.println("Made " + countChanges[0]
+					+ " exaggerations,\n\t" + countChanges[1]
+					+ " combinations, and\n\t" + countChanges[2]
+					+ " eliminations");
+			System.out.println("There are now " + map.getSegments()
+					+ " segments left");
+			System.out.println("User tolerance: " + userTolerance);
+			System.out.println();
+		}
 	}
 }

@@ -24,7 +24,7 @@ public class MapData {
 			if (!l.stillTopologicallyCorrect())
 				count++;
 		}
-		System.out.println("Map size: "+lines.size()+ " \nBad lines: "+count);
+		System.out.println("Map size: "+lines.size()+ "; Bad lines: "+count);
 		if (count>0)
 			return false;
 		return true;

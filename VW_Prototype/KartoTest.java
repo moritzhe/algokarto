@@ -18,14 +18,16 @@ public class KartoTest implements KeyListener {
 	double vwAngleThreshold = Math.PI / 72;
 	private String header = ":<gml:LineString srsName=\"EPSG:54004\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:coordinates decimal=\".\" cs=\",\" ts=\" \">";
 	private String footer = " </gml:coordinates></gml:LineString>";
+	public static final boolean DEBUG = true;
 
 	public static void main(String[] args) {
 
 		// if args not valid, just testing
-		boolean DEBUG = (args == null || args.length < 4);
+//		boolean DEBUG = ();
 
 		// if testing, make own args array
-		if (DEBUG) {
+		if (args == null || args.length < 4) {
+			System.out.println("Not enough arguments; choosing own defaults");
 
 			// 1: New Hampshire
 			// 2: Massachusetts
@@ -95,6 +97,7 @@ public class KartoTest implements KeyListener {
 			vwAtEnd++;
 		}
 		System.out.println(countWM + " " + countVW + " " + vwAtEnd);
+		System.out.println("Map is correct: "+map.isTopoCorrect());
 	}
 
 	// einlesen

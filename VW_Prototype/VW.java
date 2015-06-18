@@ -1,21 +1,24 @@
 public class VW {
+	private static boolean DEBUG = false;
 
 	public static void removeAllSmall(MapData map, double angle) {
 		double[] values = findNext(map, true);
 		while (values[2] < angle) {
 			if (values[0] != -1) {
 				map.lines.get((int) values[1]).get((int) values[0]).loesch();
-				System.out.println("Min value is: " + values[2]);
+				if (DEBUG)
+					System.out.println("Min value is: " + values[2]);
 			}
 			values = findNext(map, true);
 		}
 	}
 
 	public static void Next(MapData map, boolean useAngle) {
-		double[] values = findNext(map, true);
+		double[] values = findNext(map, useAngle);
 		if (values[0] != -1) {
 			map.lines.get((int) values[1]).get((int) values[0]).loesch();
-			System.out.println("Min value is: " + values[2]);
+			if (DEBUG)
+				System.out.println("Min value is: " + values[2]);
 		}
 	}
 
