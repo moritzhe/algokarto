@@ -97,9 +97,18 @@ public class BendTest {
 		line.add(new Point(6, 0));
 		line.add(new Point(11, 0));
 
+		Line line2 = new Line();
+		for (int i = 0; i < 4; i++) {
+			line2.add(line.get(i));
+		}
+		line2.add(line.get(0));
+		line2.recordEndPoints();
+		assertFalse(line2.lineSelfIntersects());
+
 		List<Bend> bends = new ArrayList<Bend>();
 		bends.addAll(line.findBends());
 
+		line.recordEndPoints();
 		assertFalse(line.lineSelfIntersects());
 		for (int i = 0; i < bends.size(); i++) {
 			bends.get(i).recordEndPoints();
@@ -161,8 +170,8 @@ public class BendTest {
 
 		GMLPanel panel = new GMLPanel();
 		panel.setGMLObjects(g);
-		GMLPanel.showPanelInWindow(panel);
-		Thread.sleep(10000);
+		// GMLPanel.showPanelInWindow(panel);
+		// Thread.sleep(10000);
 		// fail("Not yet implemented");
 	}
 
@@ -181,8 +190,24 @@ public class BendTest {
 		assertTrue(l2.get(0).equals(l1.get(l1.size() - 1)));
 		assertFalse(l1.lineIntersects(l3));
 
-		System.out.println(l1.lineIntersects(l2));
-		System.out.println(l2.lineIntersects(l1));
+		assertFalse(l1.lineIntersects(l2));
+		assertFalse(l2.lineIntersects(l1));
+	}
+
+	@Test
+	public void testInitLineSelfIntersectsMA() throws InterruptedException {
+		Line l1 = buildLine("-7922073.714881982,5177799.145523941 -7923666.140197782,5179389.033379811 -7921216.777441852,5181759.293449931");
+
+		// System.out.println("Should be false:");
+		assertFalse(l1.lineSelfIntersects());
+		assertFalse(l1.lineIntersects(l1));
+
+		// List<GMLObject> g = new ArrayList<GMLObject>();
+		// g.add(l1);
+		// GMLPanel panel = new GMLPanel();
+		// panel.setGMLObjects(g);
+		// GMLPanel.showPanelInWindow(panel);
+		// Thread.sleep(10000);
 	}
 
 	public Line buildLine(String l1) {
@@ -222,6 +247,7 @@ public class BendTest {
 		// start testing:
 		assertEquals(line1.get(0), line2.get(1));
 
+		// System.out.println("Following should be false: ");
 		assertFalse(line2.lineIntersects(line1));
 		assertFalse(line1.lineIntersects(line2));
 	}

@@ -33,7 +33,7 @@ public class KartoTest implements KeyListener {
 			// 4: Iceland
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
 			// 6: NH really weird combine
-			int id = 1;
+			int id = 2;
 			args = new String[] { "600", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}

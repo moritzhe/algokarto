@@ -85,14 +85,14 @@ public class Line implements GMLObject {
 		for (int i = 2; i < this.size() - 1; i++) {
 			boolean pos = isPositive(this.get(i - 1), this.get(i),
 					this.get(i + 1));
-			assert(bend.validatePointLineRelationShip());
+			assert (bend.validatePointLineRelationShip());
 			bend.add(this.get(i));
-			if (!bend.validatePointLineRelationShip()){
-				//System.out.println("Punkt: "+this.get(i));
-				//Line testLine = new Line();
-				//testLine.add(this.get(i));
-				//System.out.println(this.get(i).equals(this.get(i)));
-				assert(false);
+			if (!bend.validatePointLineRelationShip()) {
+				// System.out.println("Punkt: "+this.get(i));
+				// Line testLine = new Line();
+				// testLine.add(this.get(i));
+				// System.out.println(this.get(i).equals(this.get(i)));
+				assert (false);
 			}
 			if ((pos && !bend.isPositive()) || (!pos && bend.isPositive())) {
 				bends.add(bend);
@@ -102,11 +102,11 @@ public class Line implements GMLObject {
 		// Der letzte Punkt is immer auf den gleichen Bend wie der vorletzte
 		bend.add(this.get(this.size() - 1));
 		bends.add(bend);
-		
-		for(Bend bendToCheck : bends){
-			assert(bendToCheck.validatePointLineRelationShip());
+
+		for (Bend bendToCheck : bends) {
+			assert (bendToCheck.validatePointLineRelationShip());
 		}
-		
+
 		return bends;
 	}
 
@@ -138,12 +138,12 @@ public class Line implements GMLObject {
 			aIdx = tmp;
 		}
 		double dist = 0.0;
-		//System.out.println("Point ["+aIdx+"] "+points.get(aIdx).x+","+points.get(aIdx).y+":");
-		//System.out.println(0);
+		// System.out.println("Point ["+aIdx+"] "+points.get(aIdx).x+","+points.get(aIdx).y+":");
+		// System.out.println(0);
 		for (int i = aIdx; i < bIdx; ++i) {
-			//System.out.println("Point ["+(i+1)+"] "+points.get(i+1).x+","+points.get(i+1).y+":");
+			// System.out.println("Point ["+(i+1)+"] "+points.get(i+1).x+","+points.get(i+1).y+":");
 			dist += points.get(i).distance(points.get(i + 1));
-			//System.out.println(dist);
+			// System.out.println(dist);
 		}
 		return dist;
 	}
@@ -240,11 +240,19 @@ public class Line implements GMLObject {
 			if (line.size() != 2)
 				return line.lineIntersects(this);
 			else {
-				if (!lineSegmentsIntersect(start, end, line.start, line.end))
+				// if intersect
+				if (lineSegmentsIntersect(start, end, line.start, line.end)) {
+					// intersection is okay if exactly at start OR exactly at
+					// end
+					if (lineSegmentGoodEndNeighbors(line.start, line.end,
+							start, end, true)
+							|| lineSegmentGoodEndNeighbors(line.start,
+									line.end, end, start, true))
+						return false;
+					// else, bad
+					return true;
+				} else
 					return false;
-				// TODO: finish this case
-				System.out.println("Both lines were size 2 :(");
-				return true;
 			}
 		}
 
@@ -269,112 +277,198 @@ public class Line implements GMLObject {
 				continue;
 			}
 
-			// check whether line segment intersects with our start
-			Point extreme = start, ext2 = get(1);
-			if (lineSegmentsIntersect(line.get(i), line.get(i + 1), extreme,
-					ext2)) {
-				if (i == 0) {
-					Point lineExtreme = line.get(0), lineOther = line.get(1);
-					if (lineExtreme.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineOther, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineOther
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					} else if (line.size() == 2 && lineOther.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineExtreme, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineExtreme
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
+			Point lineI = line.get(i), lineI1 = line.get(i + 1);
+			// if there is some sort of extreme intersection
+			if (lineSegmentsIntersect(lineI, lineI1, start, get(1))
+					|| lineSegmentsIntersect(lineI, lineI1, end,
+							get(size() - 2))) {
 
-					}
-				} else if (i == line.size() - 2) {
-					Point lineExtreme = line.get(line.size() - 1), lineOther = line
-							.get(i);
-					if (lineExtreme.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineOther, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineOther
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					} else if (line.size() == 2 && lineOther.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineExtreme, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineExtreme
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					}
-				} else
+				// line extremes depend on i, so check both cases
+				if ((i == 0 && lineSegmentBadIntersectAtExtreme(lineI, lineI1,
+						line.size() == 2))
+						|| (i == size() - 2 && lineSegmentBadIntersectAtExtreme(
+								lineI1, lineI, line.size() == 2))) {
 					return true;
+				}
 			}
 
-			// check whether line segment intersects with our end
-			extreme = end;
-			ext2 = get(size() - 2);
-			if (lineSegmentsIntersect(line.get(i), line.get(i + 1), extreme,
-					ext2)) {
-				if (i == 0) {
-					Point lineExtreme = line.get(0), lineOther = line.get(1);
-					if (lineExtreme.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineOther, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineOther
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					} else if (line.size() == 2 && lineOther.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineExtreme, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineExtreme
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
+			// Point extreme = start, ext2 = get(1);
+			// if (lineSegmentsIntersect(line.get(i), line.get(i + 1), extreme,
+			// ext2)) {
+			// if (i == 0) {
+			// Point lineExtreme = line.get(0), lineOther = line.get(1);
+			// if (lineExtreme.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineOther, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineOther
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// } else if (line.size() == 2 && lineOther.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineExtreme, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineExtreme
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			//
+			// }
+			// } else if (i == line.size() - 2) {
+			// Point lineExtreme = line.get(line.size() - 1), lineOther = line
+			// .get(i);
+			// if (lineExtreme.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineOther, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineOther
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// } else if (line.size() == 2 && lineOther.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineExtreme, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineExtreme
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// }
+			// } else
+			// return true;
+			// }
+			//
+			// // check whether line segment intersects with our end
+			// extreme = end;
+			// ext2 = get(size() - 2);
+			// if (lineSegmentsIntersect(line.get(i), line.get(i + 1), extreme,
+			// ext2)) {
+			// if (i == 0) {
+			// Point lineExtreme = line.get(0), lineOther = line.get(1);
+			// if (lineExtreme.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineOther, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineOther
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// } else if (line.size() == 2 && lineOther.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineExtreme, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineExtreme
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			//
+			// }
+			// } else if (i == line.size() - 2) {
+			// Point lineExtreme = line.get(line.size() - 1), lineOther = line
+			// .get(i);
+			// if (lineExtreme.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineOther, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineOther
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// } else if (line.size() == 2 && lineOther.equals(extreme)) {
+			// if (this.neighborSegmentIntersect(lineExtreme, extreme,
+			// ext2)) {
+			// // System.out.println("Endpoint bad intersect: Mid: "
+			// // + extreme + " Other: " + lineExtreme
+			// // + " This: " + ext2);
+			// return true;
+			// }
+			// // System.out.println("Endpoint intersect special");
+			// }
+			// } else
+			// return true;
+			// }
+		}
+		return false;
+	}
 
-					}
-				} else if (i == line.size() - 2) {
-					Point lineExtreme = line.get(line.size() - 1), lineOther = line
-							.get(i);
-					if (lineExtreme.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineOther, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineOther
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					} else if (line.size() == 2 && lineOther.equals(extreme)) {
-						if (this.neighborSegmentIntersect(lineExtreme, extreme,
-								ext2)) {
-							// System.out.println("Endpoint bad intersect: Mid: "
-							// + extreme + " Other: " + lineExtreme
-							// + " This: " + ext2);
-							return true;
-						}
-//						System.out.println("Endpoint intersect special");
-					}
-				} else
-					return true;
+	/**
+	 * True if segments intersect anywhere other than extreme points (either
+	 * start or end)<br>
+	 * <br>
+	 * It assumes this line isn't degenerate
+	 * 
+	 * @param lineExtreme
+	 * @param lineOther
+	 * @param degenerateLine
+	 *            True if the segment we're checking against is the entire line
+	 * @return
+	 */
+	public boolean lineSegmentBadIntersectAtExtreme(Point lineExtreme,
+			Point lineOther, boolean degenerateLine) {
+
+		// check whether line segment intersects with our start
+		Point extreme = start, ext2 = get(1);
+		if (lineSegmentsIntersect(lineExtreme, lineOther, extreme, ext2)) {
+
+			// still okay if they're good neighbors, but if not...
+			if (!this.lineSegmentGoodEndNeighbors(lineExtreme, lineOther,
+					extreme, ext2, degenerateLine)) {
+				return true;
+			}
+		}
+
+		// check whether line segment intersects with our end
+		extreme = end;
+		ext2 = get(size() - 2);
+		if (lineSegmentsIntersect(lineExtreme, lineOther, extreme, ext2)) {
+			// still okay if they're good neighbors, but if not...
+			if (!this.lineSegmentGoodEndNeighbors(lineExtreme, lineOther,
+					extreme, ext2, degenerateLine)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * True if the two segments intersect exactly at the endpoints <br>
+	 * <br>
+	 * If they intersect elsewhere or do not intersect at all, false
+	 * 
+	 * @param lineExtreme
+	 * @param lineOther
+	 * @param extreme
+	 * @param ext2
+	 * @param degenerate
+	 * @return
+	 */
+	private boolean lineSegmentGoodEndNeighbors(Point lineExtreme,
+			Point lineOther, Point extreme, Point ext2, boolean degenerate) {
+		// if intersect at endpoint
+		if (lineExtreme.equals(extreme)) {
+			// and only at endpoint
+			if (!this.neighborSegmentIntersect(lineOther, extreme, ext2)) {
+				return true;
+			}
+		}
+		// or other endpoint if segment is whole line
+		else if (degenerate && lineOther.equals(extreme)) {
+			// but only that endpoint
+			if (!this.neighborSegmentIntersect(lineExtreme, extreme, ext2)) {
+				return true;
 			}
 		}
 		return false;
+
 	}
 
 	public boolean lineSegmentIntersects(Point a, Point b) {
@@ -411,11 +505,35 @@ public class Line implements GMLObject {
 	}
 
 	public boolean lineSelfIntersects() {
+
+		// small lines can't intersect themselves
+		if (size() <= 2)
+			return false;
+
+		// special case only two segments
+		// just make sure they're well-formed
+		if (size() == 3) {
+			if (neighborSegmentIntersect(get(0), get(1), get(2))) {
+				return true;
+			} else
+				return false;
+		}
+
+		// check if start segment intersects with end segment
+		if (lineSegmentsIntersect(start, get(1), end, get(size() - 2))) {
+			// still okay if they're good neighbors, but if not...
+			if (!this.lineSegmentGoodEndNeighbors(start, get(1), end,
+					get(size() - 2), false)) {
+				return true;
+			}
+		}
+
+		// check other segments
 		for (int i = 0; i < points.size() - 2; ++i) {
 			// does segment intersect with non-neighboring segments
-			// that come after it?
+			// that come after it (except start with end?)
 			if (lineSegmentIntersectsInRange(points.get(i), points.get(i + 1),
-					i + 2, size() - i - 2))
+					i + 2, Math.min(size() - i - 2, size() - 3)))
 				return true;
 
 			// now check whether it intersects with segment + 1:
@@ -457,7 +575,8 @@ public class Line implements GMLObject {
 
 	public void remove(Point p, boolean noCallback) {
 		points.remove(p);
-		if (!noCallback) p.loesch();
+		if (!noCallback)
+			p.loesch();
 		update();
 	}
 
@@ -492,16 +611,16 @@ public class Line implements GMLObject {
 	public boolean stillTopologicallyCorrect() {
 		for (Line line : map.lines) {
 			if (lineIntersects(line)) {
-//				System.out.println("Bad intersect size" + size() + ", "
-//						+ line.size() + ": " + this.output() + "\n"
-//						+ line.output());
+				System.out.println("Bad intersect size" + size() + ", "
+						+ line.size() + ": " + this.output() + "\n"
+						+ line.output());
 				return false;
 			}
 		}
 		if (!(topoPOIs().equals(poisInBounds) && get(0).equals(start) && get(
 				size() - 1).equals(end))) {
-//			System.out.println("Pois: " + topoPOIs().equals(poisInBounds)
-//					+ " presumably start and end are automatic");
+			// System.out.println("Pois: " + topoPOIs().equals(poisInBounds)
+			// + " presumably start and end are automatic");
 		}
 		return topoPOIs().equals(poisInBounds) && get(0).equals(start)
 				&& get(size() - 1).equals(end);
@@ -538,10 +657,11 @@ public class Line implements GMLObject {
 		// path.lineTo(points.get(i).x, points.get(i).y);
 		// }
 	}
-	
-	public boolean validatePointLineRelationShip(){
-		for (Point p: points){
-			if (!p.containedByLine(this)) return false;
+
+	public boolean validatePointLineRelationShip() {
+		for (Point p : points) {
+			if (!p.containedByLine(this))
+				return false;
 		}
 		return true;
 	}
