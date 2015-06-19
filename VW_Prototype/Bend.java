@@ -218,9 +218,6 @@ public class Bend extends Line {
 			System.out.println("Nicht benachbart: C");
 			return false;
 		}
-
-		// Original Points to restore
-		parentLine.beginOfTransaction();
 		
 		// Vorgeschlagener Wert vom Paper
 		final double combinedPeakFactor = 1.2;
@@ -229,6 +226,12 @@ public class Bend extends Line {
 		Point A = getPeak();
 		Point B = bendB.getPeak();
 		Point C = bendC.getPeak();
+		
+		if (A == points.get(0) || C == bendC.getLastPoint()){
+			return false;
+		}
+		
+		parentLine.beginOfTransaction();
 
 		// Jetzt ueberfluessig gewordene Punkte eliminieren
 		setNewEndingPoint(A);

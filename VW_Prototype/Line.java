@@ -25,22 +25,50 @@ public class Line implements GMLObject {
 	protected List<Point> pointsBeforeTransaction;
 	protected boolean inTransaction = false;
 	
+	public boolean isInTransaction(){
+		return inTransaction;
+	}
+	
+	public Point getLastPoint(){
+		return points.get(points.size()-1);
+	}
+	
 	public void beginOfTransaction(){
 		assert(!inTransaction);
 		inTransaction = true;
 		pointsBeforeTransaction = new ArrayList<Point>(points);
 		for (Point p: points){
 			p.beginOfTransaction();
+			p.propagateBeginOfTransaction(this);
 		}
+	}
+	
+	public void receiveBeginOfTransaction(){
+		assert(!inTransaction);
+		inTransaction = true;
+		pointsBeforeTransaction = new ArrayList<Point>(points);
+	}
+	
+	public void receiveRollbackTransaction(){
+		assert(inTransaction);
+		points = new ArrayList<Point>(pointsBeforeTransaction);
+	}
+	
+	public void receiveCommitTransaction(){
+		assert(inTransaction);
+		inTransaction = false;
+		pointsBeforeTransaction.clear();
+		update();
 	}
 	
 	public void commitTransaction(){
 		assert(inTransaction);
 		inTransaction = false;
-		pointsBeforeTransaction.clear();
-		for (Point p: points){
+		for (Point p: pointsBeforeTransaction){
 			p.commitTransaction();
+			p.propagateCommitTransaction(this);
 		}
+		pointsBeforeTransaction.clear();
 		update();
 	}
 	
@@ -49,6 +77,7 @@ public class Line implements GMLObject {
 		points = new ArrayList<Point>(pointsBeforeTransaction);
 		for (Point p: points){
 			p.rollbackTransaction();
+			p.propagateRollbackTransaction(this);
 		}
 		commitTransaction();
 	}

@@ -35,19 +35,43 @@ public class Point extends Point2D.Double implements GMLObject {
 	public void rollbackTransaction() {
 		setPosition(transActPositionX, transActPositionY);
 	}
-
+	
 	public void commitTransaction() {
 
 		inTransaction = false;
 	}
+	
+	public void propagateBeginOfTransaction(Line line){
+		for (Line l: lines){
+			if (l != line && !l.isInTransaction()){
+				l.receiveBeginOfTransaction();
+			}
+		}
+	}
+	
+	public void propagateRollbackTransaction(Line line){
+		for (Line l: lines){
+			if (l != line){
+				l.receiveRollbackTransaction();
+			}
+		}
+	}
+	
+	public void propagateCommitTransaction(Line line){
+		for (Line l: lines){
+			if (l != line && l.isInTransaction()){
+				l.receiveCommitTransaction();
+			}
+		}
+	}
+	
 
 	public void loesch() {
 		
 		for (Line line : lines) {
 			//System.out.println("Line Size before: "+line.points.size());
-			if(line.points.contains(this)){
-				line.remove(this, true);
-			}
+			assert(line.points.contains(this));
+			line.remove(this, true);
 			assert(!line.points.contains(this));
 			//System.out.println("Line Size after: "+line.points.size());
 		}
