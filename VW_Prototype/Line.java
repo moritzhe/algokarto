@@ -25,6 +25,7 @@ public class Line implements GMLObject {
 
 	protected List<Point> pointsBeforeTransaction;
 	protected boolean inTransaction = false;
+	protected boolean currentTransactionRolledBack = false;
 
 	public boolean isInTransaction() {
 		return inTransaction;
@@ -37,6 +38,7 @@ public class Line implements GMLObject {
 	public void beginOfTransaction() {
 		assert (!inTransaction);
 		inTransaction = true;
+		currentTransactionRolledBack = false;
 		pointsBeforeTransaction = new ArrayList<Point>(points);
 		for (Point p : points) {
 			p.beginOfTransaction();
@@ -60,17 +62,22 @@ public class Line implements GMLObject {
 	public void receiveBeginOfTransaction() {
 		assert (!inTransaction);
 		inTransaction = true;
+		currentTransactionRolledBack = false;
 		pointsBeforeTransaction = new ArrayList<Point>(points);
 	}
 
 	public void receiveRollbackTransaction() {
 		assert (inTransaction);
-		points = new ArrayList<Point>(pointsBeforeTransaction);
+		if (!currentTransactionRolledBack){
+			points = new ArrayList<Point>(pointsBeforeTransaction);
+			currentTransactionRolledBack = true;
+		}
 	}
 
 	public void receiveCommitTransaction() {
 		assert (inTransaction);
 		inTransaction = false;
+		currentTransactionRolledBack = false;
 		pointsBeforeTransaction.clear();
 		update();
 	}
@@ -78,6 +85,7 @@ public class Line implements GMLObject {
 	public void commitTransaction() {
 		assert (inTransaction);
 		inTransaction = false;
+		currentTransactionRolledBack = false;
 		for (Point p : pointsBeforeTransaction) {
 			p.commitTransaction();
 			p.propagateCommitTransaction(this);
@@ -88,6 +96,7 @@ public class Line implements GMLObject {
 
 	public void rollbackTransaction() {
 		assert (inTransaction);
+		currentTransactionRolledBack = true;
 		points = new ArrayList<Point>(pointsBeforeTransaction);
 		for (Point p : points) {
 			p.rollbackTransaction();
