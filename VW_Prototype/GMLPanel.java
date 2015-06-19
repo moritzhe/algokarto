@@ -291,7 +291,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 			if (bendB != null) {
 				Bend bendC = prevBend(bend);
 				if (bendC != null) {
-					Bend.ignoreChecks = true;
+					Bend.ignoreChecks = false;
 					bendC.combine(bend, bendB);
 					Bend.ignoreChecks = false;
 				} else {

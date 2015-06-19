@@ -149,11 +149,7 @@ public class Bend extends Line {
 			return false;
 
 		// Original Points to restore
-		List<Point> originalPoints = new ArrayList<Point>();
-		for (Point p : parentLine.points) {
-			p.beginOfTransaction();
-			originalPoints.add(p);
-		}
+		parentLine.beginOfTransaction();
 
 		final double exaggerationFactor = 0.5;
 		final double baseLineLength = getBaseLength();
@@ -186,15 +182,11 @@ public class Bend extends Line {
 		}
 
 		if (!parentLine.stillTopologicallyCorrect()) {
-			for (Point p : originalPoints) {
-				p.rollbackTransaction();
-			}
+			parentLine.rollbackTransaction();
 			return false;
 		}
 		
-		for (Point p : originalPoints) {
-			p.commitTransaction();
-		}
+		parentLine.commitTransaction();
 
 		return true;
 	}
@@ -228,11 +220,7 @@ public class Bend extends Line {
 		}
 
 		// Original Points to restore
-		List<Point> originalPoints = new ArrayList<Point>();
-		for (Point p : parentLine.points) {
-			p.beginOfTransaction();
-			originalPoints.add(p);
-		}
+		parentLine.beginOfTransaction();
 		
 		// Vorgeschlagener Wert vom Paper
 		final double combinedPeakFactor = 1.2;
@@ -343,15 +331,11 @@ public class Bend extends Line {
 		// Ueberpruefen, ob die neue Bend valide ist
 		if (!ignoreChecks && !parentLine.stillTopologicallyCorrect()) {
 			// Revert changes
-			for (Point p : originalPoints) {
-				p.rollbackTransaction();
-			}
+			parentLine.rollbackTransaction();
 			return false;
 		} else {
 			// Save changes
-			for (Point p : originalPoints) {
-				p.commitTransaction();
-			}
+			parentLine.commitTransaction();
 //			System.out.println(str);
 			return true;
 		}

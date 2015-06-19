@@ -13,8 +13,6 @@ public class Point extends Point2D.Double implements GMLObject {
 	private List<Line> lines;
 	private double transActPositionX;
 	private double transActPositionY;
-	private Map<Line, Integer> transActLinePositions;
-	private boolean transActDeleted;
 	private boolean inTransaction = false;
 	
 	@Override
@@ -32,46 +30,28 @@ public class Point extends Point2D.Double implements GMLObject {
 		inTransaction = true;
 		transActPositionX = x;
 		transActPositionY = y;
-		transActDeleted = false;
-		transActLinePositions.clear();
-		for (Line line : lines) {
-			transActLinePositions.put(line, line.points.indexOf(this));
-		}
 	}
 
 	public void rollbackTransaction() {
 		setPosition(transActPositionX, transActPositionY);
-		// System.out.println("Deleted:" + transActDeleted);
-		if (transActDeleted) {
-			for (Line line : lines) {
-				line.points.add(transActLinePositions.get(line), this);
-				line.update();
-			}
-		}
-		commitTransaction();
 	}
 
 	public void commitTransaction() {
-		transActLinePositions.clear();
-		transActDeleted = false;
+
 		inTransaction = false;
 	}
 
 	public void loesch() {
-		// prevent stack-overflow from lines returning the call
-		if (!transActDeleted) {
-			transActDeleted = true;
-			for (Line line : lines) {
-				//System.out.println("Line Size before: "+line.points.size());
-				assert(line.points.contains(this));
+		
+		for (Line line : lines) {
+			//System.out.println("Line Size before: "+line.points.size());
+			if(line.points.contains(this)){
 				line.remove(this, true);
-				assert(!line.points.contains(this));
-				//System.out.println("Line Size after: "+line.points.size());
 			}
+			assert(!line.points.contains(this));
+			//System.out.println("Line Size after: "+line.points.size());
 		}
-		else{
-			assert(lines.isEmpty());
-		}
+	
 	}
 
 	public void addToLine(Line l) {
@@ -82,7 +62,6 @@ public class Point extends Point2D.Double implements GMLObject {
 	public Point(double x, double y) {
 		super(x, y);
 		lines = new ArrayList<Line>();
-		transActLinePositions = new HashMap<Line, Integer>();
 	}
 
 	public void setPosition(double x, double y) {

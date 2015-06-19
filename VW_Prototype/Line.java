@@ -21,6 +21,37 @@ public class Line implements GMLObject {
 	boolean pathInvalid = false;
 
 	private List<Point> totalPOIS;
+	
+	protected List<Point> pointsBeforeTransaction;
+	protected boolean inTransaction = false;
+	
+	public void beginOfTransaction(){
+		assert(!inTransaction);
+		inTransaction = true;
+		pointsBeforeTransaction = new ArrayList<Point>(points);
+		for (Point p: points){
+			p.beginOfTransaction();
+		}
+	}
+	
+	public void commitTransaction(){
+		assert(inTransaction);
+		inTransaction = false;
+		pointsBeforeTransaction.clear();
+		for (Point p: points){
+			p.commitTransaction();
+		}
+		update();
+	}
+	
+	public void rollbackTransaction(){
+		assert(inTransaction);
+		points = new ArrayList<Point>(pointsBeforeTransaction);
+		for (Point p: points){
+			p.rollbackTransaction();
+		}
+		commitTransaction();
+	}
 
 	public Line() {
 		points = new ArrayList<Point>();
