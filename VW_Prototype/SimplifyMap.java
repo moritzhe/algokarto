@@ -11,7 +11,7 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-public class KartoTest implements KeyListener {
+public class SimplifyMap implements KeyListener {
 	JFrame frame;
 	MapData map;
 	GMLPanel panel;
@@ -47,7 +47,7 @@ public class KartoTest implements KeyListener {
 		String output = args[3];
 
 		// do work
-		KartoTest karto = new KartoTest();
+		SimplifyMap karto = new SimplifyMap();
 		karto.readData(lineInput, pointInput);
 		if (!DEBUG)
 			karto.simplify(maxEdgesToKeep);
@@ -199,7 +199,7 @@ public class KartoTest implements KeyListener {
 
 	private static double threshold = 50000;// .001;
 	// Massachusetts shouldn't exaggerate bottom left bend
-	private static double maxThreshold = 1.024E8;
+	private static double maxThreshold = 1.024E8*4;
 	private static double edges = -1;
 
 	@Override
