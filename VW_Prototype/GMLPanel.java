@@ -37,7 +37,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
 		calculateGMLBounds();
-		System.out.println("Changed GML: size: "+gml.size());
+		System.out.println("Changed GML: size: " + gml.size());
 	}
 
 	/**
@@ -91,14 +91,8 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 	/** Draw GML Objects */
 	public void paintObjects(Graphics g, boolean drawHash) {
-		System.out.println(this.hashCode()+" "+list.size());
+		System.out.println(this.hashCode() + " " + list.size());
 		Graphics2D gr = (Graphics2D) g;
-
-		Color c = gr.getColor();
-//		gr.setColor(this.getBackground());
-		gr.setColor(Color.GREEN);
-		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
-		gr.setColor(c);
 
 		// save G2D affine
 		AffineTransform save = gr.getTransform();

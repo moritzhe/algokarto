@@ -281,13 +281,16 @@ public class SimplifyMap implements KeyListener {
 					+ " segments left in VW");
 			System.out.println();
 			panelWM.setGMLObjects(updateBends());
-			List<GMLObject> gml = new ArrayList<GMLObject>();
-			gml.addAll(mapVW.lines);
-			gml.addAll(mapVW.pois);
-			System.out.println("VW Lines: "+mapVW.lines.size());
-			System.out.println("VW POIs: "+mapVW.pois.size());
-			System.out.println("GML: "+gml.size()+" ("+(mapVW.lines.size()+mapVW.pois.size())+")");
-			panelVW.setGMLObjects(gml);
+//			List<GMLObject> gml = new ArrayList<GMLObject>();
+////			for (Line l: mapVW.lines){
+////				gml.add(l.copy());
+////			}
+//			gml.addAll(mapVW.lines);
+//			gml.addAll(mapVW.pois);
+//			System.out.println("VW Lines: "+mapVW.lines.size());
+//			System.out.println("VW POIs: "+mapVW.pois.size());
+//			System.out.println("GML: "+gml.size()+" ("+(mapVW.lines.size()+mapVW.pois.size())+")");
+//			panelVW.setGMLObjects(gml);
 			panelWM.repaint();
 			panelVW.repaint();
 		}

@@ -3,6 +3,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Path2D.Double;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -107,13 +108,21 @@ public class Line implements GMLObject {
 		}
 	}
 
+	public Line(Line l) {
+		this();
+		for (Point p : l.points) {
+			add(p);
+		}
+	}
+
 	public void add(Point p) {
 		points.add(p);
 		p.addToLine(this);
 		if (points.size() == 1) {
 			length = 0;
-			if (!pathInvalid)
-				path.moveTo(p.x, p.y);
+			path = new Path2D.Double();
+			path.moveTo(p.x, p.y);
+			pathInvalid = false;
 		} else {
 			length += p.distance(points.get(points.size() - 2));
 			if (!pathInvalid)
@@ -130,6 +139,7 @@ public class Line implements GMLObject {
 	public void drawWithColor(Graphics2D g, Color color) {
 		Color c = g.getColor();
 		g.setColor(color);
+		// pathInvalid = true;
 		if (pathInvalid) {
 			recalculatePath();
 		}
@@ -138,10 +148,13 @@ public class Line implements GMLObject {
 	}
 
 	private void recalculatePath() {
-		if (pathInvalid && size() >= 1) {
-			path.moveTo(get(0).x, get(0).y);
-			for (int i = 1; i < size(); i++) {
-				path.lineTo(get(i).x, get(i).y);
+		if (pathInvalid) {
+			path = new Path2D.Double();
+			if (size() > 0) {
+				path.moveTo(get(0).x, get(0).y);
+				for (int i = 1; i < size(); i++) {
+					path.lineTo(get(i).x, get(i).y);
+				}
 			}
 		}
 		pathInvalid = false;
