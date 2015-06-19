@@ -1,4 +1,5 @@
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -30,12 +31,13 @@ public class GMLPanel extends JPanel implements MouseListener {
 	BufferedImage selectionBuffer;
 	/** selected Object */
 	int currentlySelectedObject;
-	
+
 	public MapData map;
 
 	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
 		calculateGMLBounds();
+		System.out.println("Changed GML: size: "+gml.size());
 	}
 
 	/**
@@ -89,16 +91,26 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 	/** Draw GML Objects */
 	public void paintObjects(Graphics g, boolean drawHash) {
+		System.out.println(this.hashCode()+" "+list.size());
 		Graphics2D gr = (Graphics2D) g;
+
+		Color c = gr.getColor();
+//		gr.setColor(this.getBackground());
+		gr.setColor(Color.GREEN);
+		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
+		gr.setColor(c);
+
 		// save G2D affine
 		AffineTransform save = gr.getTransform();
 		// change G2D affine to ours
 		gr.transform(calculateAffine());
 		//
-		//System.out.println("AT: "+at.getScaleX()+","+at.getScaleY());
-		Stroke defaultStroke = new BasicStroke((float)(2.0 / Math.abs(at.getScaleX())) /*(float) .01*/);//gr.getStroke();
+		// System.out.println("AT: "+at.getScaleX()+","+at.getScaleY());
+		Stroke defaultStroke = new BasicStroke((float) (2.0 / Math.abs(at
+				.getScaleX())) /*(float) .01*/);// gr.getStroke();
 		gr.setStroke(defaultStroke);
-		Stroke selectedStroke = new BasicStroke((float)(4.0 / Math.abs(at.getScaleX())));//2000
+		Stroke selectedStroke = new BasicStroke((float) (4.0 / Math.abs(at
+				.getScaleX())));// 2000
 		// Draw objects with this new transform
 		for (int i = 0; i < list.size(); i++) {
 			if ((list.get(i).hashCode() & 0xFFFFFF) == currentlySelectedObject) {
@@ -139,6 +151,20 @@ public class GMLPanel extends JPanel implements MouseListener {
 		window.pack();
 		window.setVisible(true);
 		panel.addMouseListener(panel);
+		return window;
+	}
+
+	public static JFrame showPanelInWindow(GMLPanel panel, GMLPanel panel2) {
+		panel.setPreferredSize(new Dimension(600, 600));
+		panel2.setPreferredSize(new Dimension(600, 600));
+		JFrame window = new JFrame();
+		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		window.add(panel, BorderLayout.WEST);
+		window.add(panel2, BorderLayout.EAST);
+		window.pack();
+		window.setVisible(true);
+		panel.addMouseListener(panel);
+		panel2.addMouseListener(panel2);
 		return window;
 	}
 

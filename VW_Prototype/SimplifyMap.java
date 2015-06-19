@@ -13,8 +13,8 @@ import javax.swing.JFrame;
 
 public class SimplifyMap implements KeyListener {
 	JFrame frame;
-	MapData map;
-	GMLPanel panel;
+	MapData mapWM, mapVW;
+	GMLPanel panelWM, panelVW;
 	double vwAngleThreshold = Math.PI / 72;
 	private String header = ":<gml:LineString srsName=\"EPSG:54004\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:coordinates decimal=\".\" cs=\",\" ts=\" \">";
 	private String footer = " </gml:coordinates></gml:LineString>";
@@ -23,7 +23,7 @@ public class SimplifyMap implements KeyListener {
 	public static void main(String[] args) {
 
 		// if args not valid, just testing
-//		boolean DEBUG = ();
+		// boolean DEBUG = ();
 
 		// if testing, make own args array
 		if (args == null || args.length < 4) {
@@ -36,7 +36,7 @@ public class SimplifyMap implements KeyListener {
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
 			// 6: NH really weird combine
 			int id = 2;
-			args = new String[] { "600", "algokarto/lines_out" + id + ".txt",
+			args = new String[] { "20000", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}
 
@@ -49,21 +49,21 @@ public class SimplifyMap implements KeyListener {
 		// do work
 		SimplifyMap karto = new SimplifyMap();
 		karto.readData(lineInput, pointInput);
-		if (!DEBUG)
-			karto.simplify(maxEdgesToKeep);
-		karto.writeFile(output);
+		karto.simplify(maxEdgesToKeep);
 
 		// if testing, show in panel
 		if (DEBUG) {
 			karto.display();
+		} else {
+			karto.writeFile(output);
 		}
 	}
 
 	private void writeFile(String output) {
 		try {
 			PrintWriter writer = new PrintWriter(output, "UTF-8");
-			for (int i = 1; i <= map.lines.size(); i++) {
-				writer.println(i + header + map.lines.get(i - 1).output()
+			for (int i = 1; i <= mapWM.lines.size(); i++) {
+				writer.println(i + header + mapWM.lines.get(i - 1).output()
 						+ footer);
 			}
 			writer.close();
@@ -74,35 +74,46 @@ public class SimplifyMap implements KeyListener {
 
 	private void simplify(int maxEdgesToKeep) {
 		int countWM = 0, countVW = 0;
-		int segments = map.getSegments();
+		int segments = mapWM.getSegments();
 		double threshold = 0.001;
 		while (segments > maxEdgesToKeep && threshold < maxThreshold) {
-			WM.simplify(map, threshold);
-			countWM += segments - map.getSegments();
-			segments = map.getSegments();
-			VW.removeAllSmall(map, vwAngleThreshold);
-			countVW += segments - map.getSegments();
-			segments = map.getSegments();
+			WM.simplify(mapWM, threshold);
+			countWM += segments - mapWM.getSegments();
+			segments = mapWM.getSegments();
+			VW.removeAllSmall(mapWM, vwAngleThreshold);
+			countVW += segments - mapWM.getSegments();
+			segments = mapWM.getSegments();
 			threshold = Math.min(threshold * 2, maxThreshold);
 		}
 
 		double vwAtEnd = 0;
 		while (segments > maxEdgesToKeep) {
-			VW.Next(map, false);
+			VW.Next(mapWM, false);
 			segments--;
-			if (segments != map.getSegments()) {
+			if (segments != mapWM.getSegments()) {
 				System.out.println("Unable to continue removing lines");
 				break;
 			}
 			vwAtEnd++;
 		}
 		System.out.println(countWM + " " + countVW + " " + vwAtEnd);
-		System.out.println("Map is correct: "+map.isTopoCorrect());
+		System.out.println("Map is correct: " + mapWM.isTopoCorrect());
+
+		segments = mapVW.getSegments();
+		while (segments > maxEdgesToKeep) {
+			VW.Next(mapVW, false);
+			segments--;
+			if (segments != mapVW.getSegments()) {
+				// System.out.println("Unable to continue removing lines");
+				break;
+			}
+		}
 	}
 
 	// einlesen
 	public void readData(String lineFile, String pointsFile) {
-		map = new MapData();
+		mapWM = new MapData();
+		mapVW = new MapData();
 		String lines_out = null;
 		try {
 			lines_out = new String(Files.readAllBytes(Paths.get(lineFile)));
@@ -126,7 +137,8 @@ public class SimplifyMap implements KeyListener {
 						.doubleValue(), new Double(single_point_split[1])
 						.doubleValue()));
 			}
-			map.lines.add(currentLine);
+			mapWM.lines.add(currentLine);
+			mapVW.lines.add(currentLine.copy());
 		}
 
 		String points_out = null;
@@ -146,48 +158,79 @@ public class SimplifyMap implements KeyListener {
 					.replaceAll(" $", "");
 			String[] string_point_split = points_split[i].split(",");
 			if (string_point_split.length >= 2) {
-				map.pois.add(new Point(new Double(string_point_split[0])
+				mapWM.pois.add(new Point(new Double(string_point_split[0])
 						.doubleValue(), new Double(string_point_split[1])
 						.doubleValue()));
 			}
 		}
-		map.setFinal();
+		mapWM.setFinal();
+		mapVW.pois.addAll(mapWM.pois);
+		mapVW.setFinal();
 	}
 
 	private List<GMLObject> updateBends() {
-		WM wm = new WM();
 		List<GMLObject> gml = new ArrayList<GMLObject>();
-		for (int i = 0; i < map.lines.size(); i++) {
-			gml.addAll(map.lines.get(i).findBends());
+		for (int i = 0; i < mapWM.lines.size(); i++) {
+			gml.addAll(mapWM.lines.get(i).findBends());
 		}
-		gml.addAll(map.pois);
+		gml.addAll(mapWM.pois);
 		return gml;
 	}
 
 	private void display() {
-		panel = new GMLPanel();
-		panel.map = map;
-		panel.setGMLObjects(updateBends());
-		JFrame frame = GMLPanel.showPanelInWindow(panel);
+		panelWM = new GMLPanel();
+		panelWM.map = mapWM;
+		panelWM.setGMLObjects(updateBends());
+		// JFrame frame = GMLPanel.showPanelInWindow(panelWM);
+		// frame.addKeyListener(this);
+		System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
+
+		panelVW = new GMLPanel();
+		panelVW.map = mapVW;
+		List<GMLObject> gml = new ArrayList<GMLObject>();
+		gml.addAll(mapVW.lines);
+		gml.addAll(mapVW.pois);
+		panelVW.setGMLObjects(gml);
+		frame = GMLPanel.showPanelInWindow(panelWM, panelVW);
 		frame.addKeyListener(this);
-		System.out.println("Map is correct: "+map.isTopoCorrect());
+		System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == e.VK_DELETE) {
-			panel.eliminateSelectedBend();
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			panelWM.eliminateSelectedBend();
+			panelWM.setGMLObjects(updateBends());
+			panelWM.repaint();
+			panelVW.eliminateSelectedBend();
+			List<GMLObject> gml = new ArrayList<GMLObject>();
+			gml.addAll(mapVW.lines);
+			gml.addAll(mapVW.pois);
+			panelVW.setGMLObjects(gml);
+			panelVW.repaint();
 		} else if (e.getKeyCode() == e.VK_E) {
-			panel.exaggerateSelectedBend();
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			panelWM.exaggerateSelectedBend();
+			panelWM.setGMLObjects(updateBends());
+			panelWM.repaint();
+			panelVW.exaggerateSelectedBend();
+			List<GMLObject> gml = new ArrayList<GMLObject>();
+			gml.addAll(mapVW.lines);
+			gml.addAll(mapVW.pois);
+			panelVW.setGMLObjects(gml);
+			panelVW.repaint();
 		} else if (e.getKeyCode() == e.VK_C) {
 			System.out.println("Combine....");
-			panel.combineSelectedBend();
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			panelWM.combineSelectedBend();
+			panelWM.setGMLObjects(updateBends());
+			panelWM.repaint();
+			System.out.println("Endcombine....");
+			System.out.println("Combine....");
+			panelVW.combineSelectedBend();
+			List<GMLObject> gml = new ArrayList<GMLObject>();
+			gml.addAll(mapVW.lines);
+			gml.addAll(mapVW.pois);
+			panelVW.setGMLObjects(gml);
+			panelVW.repaint();
 			System.out.println("Endcombine....");
 		}
 	}
@@ -199,7 +242,7 @@ public class SimplifyMap implements KeyListener {
 
 	private static double threshold = 50000;// .001;
 	// Massachusetts shouldn't exaggerate bottom left bend
-	private static double maxThreshold = 1.024E8*4;
+	private static double maxThreshold = 1.024E8 * 4;
 	private static double edges = -1;
 
 	@Override
@@ -207,36 +250,49 @@ public class SimplifyMap implements KeyListener {
 		if (e.getKeyChar() == ' ') {
 			// for (int i = 0; i < 20; ++i)
 			// VW.Next(map);
-			WM.simplify(map, threshold);
+			WM.simplify(mapWM, threshold);
 			threshold = Math.min(threshold * 2, maxThreshold);
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			panelWM.setGMLObjects(updateBends());
+			panelWM.repaint();
 		}
 		if (e.getKeyChar() == 'v' || e.getKeyChar() == 'V') {
 			for (int i = 0; i < 20; ++i)
-				VW.Next(map, false);
-			System.out.println("There are now " + map.getSegments()
+				VW.Next(mapVW, false);
+			System.out.println("There are now " + mapVW.getSegments()
 					+ " segments left");
 			System.out.println();
 			// WM.simplify(map, threshold);
 			// threshold = Math.min(threshold * 2, maxThreshold);
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			List<GMLObject> gml = new ArrayList<GMLObject>();
+			gml.addAll(mapVW.lines);
+			gml.addAll(mapVW.pois);
+			panelVW.setGMLObjects(gml);
+			panelVW.repaint();
 		}
 		if (e.getKeyChar() == 's' || e.getKeyChar() == 'S') {
 			if (edges < 0) {
-				edges = .75 * map.getSegments();
+				edges = .75 * mapWM.getSegments();
 			}
 			simplify((int) edges);
 			edges *= .75;
 
-			System.out.println("There are now " + map.getSegments()
-					+ " segments left");
+			System.out.println("There are now " + mapWM.getSegments()
+					+ " segments left in WM and \n" + mapVW.getSegments()
+					+ " segments left in VW");
 			System.out.println();
-			panel.setGMLObjects(updateBends());
-			panel.repaint();
+			panelWM.setGMLObjects(updateBends());
+			List<GMLObject> gml = new ArrayList<GMLObject>();
+			gml.addAll(mapVW.lines);
+			gml.addAll(mapVW.pois);
+			System.out.println("VW Lines: "+mapVW.lines.size());
+			System.out.println("VW POIs: "+mapVW.pois.size());
+			System.out.println("GML: "+gml.size()+" ("+(mapVW.lines.size()+mapVW.pois.size())+")");
+			panelVW.setGMLObjects(gml);
+			panelWM.repaint();
+			panelVW.repaint();
 		}
-		System.out.println("Map is correct: "+map.isTopoCorrect());
+		System.out.println("Map is correct: " + mapWM.isTopoCorrect());
+		System.out.println("Map is correct: " + mapVW.isTopoCorrect());
 	}
 
 }

@@ -34,6 +34,18 @@ public class Line implements GMLObject {
 		}
 	}
 	
+	/**
+	 * Only makes sure has same points
+	 * @return
+	 */
+	public Line copy(){
+		Line l2 = new Line();
+		for (Point p:points	){
+			l2.add(new Point(p.x,p.y));
+		}
+		return l2;
+	}
+	
 	public void commitTransaction(){
 		assert(inTransaction);
 		inTransaction = false;
