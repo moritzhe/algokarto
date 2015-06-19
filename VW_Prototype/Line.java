@@ -21,46 +21,76 @@ public class Line implements GMLObject {
 	boolean pathInvalid = false;
 
 	private List<Point> totalPOIS;
-	
+
 	protected List<Point> pointsBeforeTransaction;
 	protected boolean inTransaction = false;
-	
-	public void beginOfTransaction(){
-		assert(!inTransaction);
+
+	public boolean isInTransaction() {
+		return inTransaction;
+	}
+
+	public Point getLastPoint() {
+		return points.get(points.size() - 1);
+	}
+
+	public void beginOfTransaction() {
+		assert (!inTransaction);
 		inTransaction = true;
 		pointsBeforeTransaction = new ArrayList<Point>(points);
-		for (Point p: points){
+		for (Point p : points) {
 			p.beginOfTransaction();
+			p.propagateBeginOfTransaction(this);
 		}
 	}
-	
+
 	/**
 	 * Only makes sure has same points
+	 * 
 	 * @return
 	 */
-	public Line copy(){
+	public Line copy() {
 		Line l2 = new Line();
-		for (Point p:points	){
-			l2.add(new Point(p.x,p.y));
+		for (Point p : points) {
+			l2.add(new Point(p.x, p.y));
 		}
 		return l2;
 	}
-	
-	public void commitTransaction(){
-		assert(inTransaction);
+
+	public void receiveBeginOfTransaction() {
+		assert (!inTransaction);
+		inTransaction = true;
+		pointsBeforeTransaction = new ArrayList<Point>(points);
+	}
+
+	public void receiveRollbackTransaction() {
+		assert (inTransaction);
+		points = new ArrayList<Point>(pointsBeforeTransaction);
+	}
+
+	public void receiveCommitTransaction() {
+		assert (inTransaction);
 		inTransaction = false;
 		pointsBeforeTransaction.clear();
-		for (Point p: points){
-			p.commitTransaction();
-		}
 		update();
 	}
-	
-	public void rollbackTransaction(){
-		assert(inTransaction);
+
+	public void commitTransaction() {
+		assert (inTransaction);
+		inTransaction = false;
+		for (Point p : pointsBeforeTransaction) {
+			p.commitTransaction();
+			p.propagateCommitTransaction(this);
+		}
+		pointsBeforeTransaction.clear();
+		update();
+	}
+
+	public void rollbackTransaction() {
+		assert (inTransaction);
 		points = new ArrayList<Point>(pointsBeforeTransaction);
-		for (Point p: points){
+		for (Point p : points) {
 			p.rollbackTransaction();
+			p.propagateRollbackTransaction(this);
 		}
 		commitTransaction();
 	}
@@ -304,8 +334,8 @@ public class Line implements GMLObject {
 			// check against our middle segments
 			if (lineSegmentIntersectsInRange(line.get(i), line.get(i + 1), 1,
 					size() - 2)) {
-//				System.out.println("Reg intersect: Other: " + line.get(i)
-//						+ " + " + line.get(i + 1));
+				// System.out.println("Reg intersect: Other: " + line.get(i)
+				// + " + " + line.get(i + 1));
 				return true;
 			}
 
