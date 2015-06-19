@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.event.MouseEvent;
@@ -37,7 +38,6 @@ public class GMLPanel extends JPanel implements MouseListener {
 	public void setGMLObjects(List<GMLObject> gml) {
 		list = gml;
 		calculateGMLBounds();
-		System.out.println("Changed GML: size: " + gml.size());
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 
 	/** Draw GML Objects */
 	public void paintObjects(Graphics g, boolean drawHash) {
-		System.out.println(this.hashCode() + " " + list.size());
+//		System.out.println(this.hashCode() + " " + list.size());
 		Graphics2D gr = (Graphics2D) g;
 
 		// save G2D affine
@@ -153,6 +153,7 @@ public class GMLPanel extends JPanel implements MouseListener {
 		panel2.setPreferredSize(new Dimension(600, 600));
 		JFrame window = new JFrame();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		window.setLayout(new GridLayout(1,2));
 		window.add(panel, BorderLayout.WEST);
 		window.add(panel2, BorderLayout.EAST);
 		window.pack();
@@ -174,12 +175,12 @@ public class GMLPanel extends JPanel implements MouseListener {
 			calculateAffine();
 			repaint();
 		}
-		System.out.println(time2 + " " + (time2 - time));
+//		System.out.println(time2 + " " + (time2 - time));
 		time = time2;
 
 		// Selection
 		int selection = selectionBuffer.getRGB(e.getX(), e.getY()) & 0xFFFFFF;
-		System.out.println(selection);
+//		System.out.println(selection);
 		if (selection != currentlySelectedObject) {
 			currentlySelectedObject = selection;
 			repaint();

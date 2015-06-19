@@ -68,8 +68,8 @@ public class WM {
 
 							if (changeHappened) {
 								// System.out.println(str);
-								System.out.println("User tolerance: "
-										+ userTolerance);
+//								System.out.println("User tolerance: "
+//										+ userTolerance);
 								countChanges[1]++;
 								break;
 							}
@@ -94,7 +94,7 @@ public class WM {
 				}
 			}
 		} while (changeHappened);
-		if (countChanges[0] + countChanges[1] + countChanges[2] > 0) {
+		if (SimplifyMap.VERBOSE && countChanges[0] + countChanges[1] + countChanges[2] > 0) {
 			System.out.println("Made " + countChanges[0]
 					+ " exaggerations,\n\t" + countChanges[1]
 					+ " combinations, and\n\t" + countChanges[2]

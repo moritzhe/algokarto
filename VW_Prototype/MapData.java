@@ -18,14 +18,34 @@ public class MapData {
 		this.pois = pois;
 	}
 
+	/**
+	 * Checks that maps have same lines.
+	 */
+	public boolean equals(Object o) {
+		if (o instanceof MapData) {
+			MapData m = (MapData) o;
+			if (m.lines.size() == lines.size()) {
+				for (int i = 0; i < lines.size(); i++) {
+					if (!lines.contains(m.lines.get(i))
+							|| !m.lines.contains(lines.get(i)))
+						return false;
+				}
+				return true;
+			} else
+				return false;
+		} else
+			return false;
+	}
+
 	public boolean isTopoCorrect() {
 		int count = 0;
 		for (Line l : lines) {
 			if (!l.stillTopologicallyCorrect())
 				count++;
 		}
-		System.out.println("Map size: "+lines.size()+ "; Bad lines: "+count);
-		if (count>0)
+//		System.out.println("Map size: " + lines.size() + "; Bad lines: "
+//				+ count);
+		if (count > 0)
 			return false;
 		return true;
 	}

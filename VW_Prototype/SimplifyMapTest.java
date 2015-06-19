@@ -1,6 +1,17 @@
-public class PretendCommandLine {
+import static org.junit.Assert.*;
 
-	public static void main(String[] args) {
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+
+public class SimplifyMapTest {
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+	}
+
+	@Test
+	public void testWrite() {
 
 		int id = 1;
 		int maxEdges = 500;
@@ -18,7 +29,7 @@ public class PretendCommandLine {
 		karto.readData("results.txt", "algokarto/points_out" + id + ".txt");
 		MapData m2 = karto.mapVW;
 		
-		System.out.println("Equal: " +m1.equals(m2));
-		
+		assertEquals(m2,m1);
 	}
+
 }

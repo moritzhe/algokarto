@@ -18,7 +18,7 @@ public class SimplifyMap implements KeyListener {
 	double vwAngleThreshold = Math.PI / 72;
 	private String header = ":<gml:LineString srsName=\"EPSG:54004\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:coordinates decimal=\".\" cs=\",\" ts=\" \">";
 	private String footer = " </gml:coordinates></gml:LineString>";
-	public static final boolean DEBUG = true;
+	public static boolean DISPLAY = false, WRITE = true, VERBOSE = false;
 
 	public static void main(String[] args) {
 
@@ -35,9 +35,13 @@ public class SimplifyMap implements KeyListener {
 			// 4: Iceland
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
 			// 6: NH really weird combine
-			int id = 2;
+			int id = 4;
 			args = new String[] { "20000", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
+		}
+		
+		if (args.length == 5 && args[4].equals("display")){
+			DISPLAY = true;
 		}
 
 		// parse args
@@ -52,14 +56,15 @@ public class SimplifyMap implements KeyListener {
 		karto.simplify(maxEdgesToKeep);
 
 		// if testing, show in panel
-		if (DEBUG) {
+		if (DISPLAY) {
 			karto.display();
-		} else {
+		}
+		if (WRITE) {
 			karto.writeFile(output);
 		}
 	}
 
-	private void writeFile(String output) {
+	public void writeFile(String output) {
 		try {
 			PrintWriter writer = new PrintWriter(output, "UTF-8");
 			for (int i = 1; i <= mapWM.lines.size(); i++) {
@@ -73,6 +78,11 @@ public class SimplifyMap implements KeyListener {
 	}
 
 	private void simplify(int maxEdgesToKeep) {
+		// no need to do anything if already less than max edges
+		if (mapWM.getSegments() < maxEdgesToKeep
+				&& mapVW.getSegments() < maxEdgesToKeep) {
+			return;
+		}
 		int countWM = 0, countVW = 0;
 		int segments = mapWM.getSegments();
 		double threshold = 0.001;
@@ -86,18 +96,22 @@ public class SimplifyMap implements KeyListener {
 			threshold = Math.min(threshold * 2, maxThreshold);
 		}
 
-		double vwAtEnd = 0;
+		int vwAtEnd = 0;
 		while (segments > maxEdgesToKeep) {
 			VW.Next(mapWM, false);
 			segments--;
 			if (segments != mapWM.getSegments()) {
-				System.out.println("Unable to continue removing lines");
+				System.out.println("Unable to achieve " + maxEdgesToKeep
+						+ " edges");
 				break;
 			}
 			vwAtEnd++;
 		}
-		System.out.println(countWM + " " + countVW + " " + vwAtEnd);
-		System.out.println("Map is correct: " + mapWM.isTopoCorrect());
+		System.out.println("Removed " + countWM + " WM edges and\n        "
+				+ countVW
+				+ " edges with small angle and finished with\n        "
+				+ vwAtEnd
+				+ " regular VW edges since WM couldn't remove any more");
 
 		segments = mapVW.getSegments();
 		while (segments > maxEdgesToKeep) {
@@ -183,7 +197,7 @@ public class SimplifyMap implements KeyListener {
 		panelWM.setGMLObjects(updateBends());
 		// JFrame frame = GMLPanel.showPanelInWindow(panelWM);
 		// frame.addKeyListener(this);
-		System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
+		// System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
 
 		panelVW = new GMLPanel();
 		panelVW.map = mapVW;
@@ -193,7 +207,7 @@ public class SimplifyMap implements KeyListener {
 		panelVW.setGMLObjects(gml);
 		frame = GMLPanel.showPanelInWindow(panelWM, panelVW);
 		frame.addKeyListener(this);
-		System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
+		// System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
 	}
 
 	@Override
@@ -259,14 +273,7 @@ public class SimplifyMap implements KeyListener {
 			for (int i = 0; i < 20; ++i)
 				VW.Next(mapVW, false);
 			System.out.println("There are now " + mapVW.getSegments()
-					+ " segments left");
-			System.out.println();
-			// WM.simplify(map, threshold);
-			// threshold = Math.min(threshold * 2, maxThreshold);
-			List<GMLObject> gml = new ArrayList<GMLObject>();
-			gml.addAll(mapVW.lines);
-			gml.addAll(mapVW.pois);
-			panelVW.setGMLObjects(gml);
+					+ " VW segments left");
 			panelVW.repaint();
 		}
 		if (e.getKeyChar() == 's' || e.getKeyChar() == 'S') {
@@ -281,21 +288,11 @@ public class SimplifyMap implements KeyListener {
 					+ " segments left in VW");
 			System.out.println();
 			panelWM.setGMLObjects(updateBends());
-//			List<GMLObject> gml = new ArrayList<GMLObject>();
-////			for (Line l: mapVW.lines){
-////				gml.add(l.copy());
-////			}
-//			gml.addAll(mapVW.lines);
-//			gml.addAll(mapVW.pois);
-//			System.out.println("VW Lines: "+mapVW.lines.size());
-//			System.out.println("VW POIs: "+mapVW.pois.size());
-//			System.out.println("GML: "+gml.size()+" ("+(mapVW.lines.size()+mapVW.pois.size())+")");
-//			panelVW.setGMLObjects(gml);
 			panelWM.repaint();
 			panelVW.repaint();
 		}
-		System.out.println("Map is correct: " + mapWM.isTopoCorrect());
-		System.out.println("Map is correct: " + mapVW.isTopoCorrect());
+		System.out.println("WM Map is correct: " + mapWM.isTopoCorrect());
+		System.out.println("VW Map is correct: " + mapVW.isTopoCorrect());
 	}
 
 }
