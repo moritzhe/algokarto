@@ -14,7 +14,7 @@ public class Line implements GMLObject {
 	protected List<Point> points;
 	private double length = -1;
 	private Path2D.Double path;
-	private Color color = Color.BLACK;
+	private Color color = Color.BLUE;
 	private Point start, end;
 	private Line complement;
 	private Set<Point> poisInBounds;

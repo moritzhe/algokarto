@@ -109,7 +109,7 @@ public class Point extends Point2D.Double implements GMLObject {
 
 	@Override
 	public void draw(Graphics2D g) {
-		drawWithColor(g, Color.RED);
+		drawWithColor(g, Color.BLACK);
 	}
 
 	@Override

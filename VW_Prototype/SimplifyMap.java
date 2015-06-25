@@ -12,13 +12,13 @@ import java.util.List;
 import javax.swing.JFrame;
 
 public class SimplifyMap implements KeyListener {
-	JFrame frame;
+	// JFrame frame;
 	MapData mapWM, mapVW;
 	GMLPanel panelWM, panelVW;
 	double vwAngleThreshold = Math.PI / 72;
 	private String header = ":<gml:LineString srsName=\"EPSG:54004\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:coordinates decimal=\".\" cs=\",\" ts=\" \">";
 	private String footer = " </gml:coordinates></gml:LineString>";
-	public static boolean DISPLAY = false, WRITE = true, VERBOSE = false;
+	public static boolean DISPLAY = true, WRITE = true, VERBOSE = false;
 
 	public static void main(String[] args) {
 
@@ -35,12 +35,12 @@ public class SimplifyMap implements KeyListener {
 			// 4: Iceland
 			// 5: NH reduced to 300 lines using "simplify" (19:00, June 10)
 			// 6: NH really weird combine
-			int id = 4;
+			int id = 2;
 			args = new String[] { "20000", "algokarto/lines_out" + id + ".txt",
 					"algokarto/points_out" + id + ".txt", "results.txt" };
 		}
-		
-		if (args.length == 5 && args[4].equals("display")){
+
+		if (args.length == 5 && args[4].equals("display")) {
 			DISPLAY = true;
 		}
 
@@ -205,9 +205,10 @@ public class SimplifyMap implements KeyListener {
 		gml.addAll(mapVW.lines);
 		gml.addAll(mapVW.pois);
 		panelVW.setGMLObjects(gml);
-		frame = GMLPanel.showPanelInWindow(panelWM, panelVW);
+		// JFrame frame = GMLPanel.showPanelInWindow(panelWM, panelVW);
+		JFrame frame = GMLPanel.showPanelInWindow(panelVW);
 		frame.addKeyListener(this);
-		// System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
+		// // System.out.println("MapWM is correct: " + mapWM.isTopoCorrect());
 	}
 
 	@Override
@@ -256,7 +257,8 @@ public class SimplifyMap implements KeyListener {
 
 	private static double threshold = 50000;// .001;
 	// Massachusetts shouldn't exaggerate bottom left bend
-	private static double maxThreshold = 1.024E8 * 4;
+	// Was 1.0248E * 4
+	private static double maxThreshold = 1.024E8 * 1024;
 	private static double edges = -1;
 
 	@Override
